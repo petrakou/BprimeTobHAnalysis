@@ -72,34 +72,37 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     // ----------member data ---------------------------
 
     //// Configurables 
-    int                             maxEvents_;
-    const std::string               inputTTree_;
-    const std::vector<std::string>  inputFiles_;
-    TChain*                         chain_;
-    std::string	                    inFile_;
 
     //bool               debug;
     //std::string        outFile_;
     //TTree		 *newtree;
 
-    double jetPtMin_ ; 
-    double jetPtMax_ ; 
-    double jetAbsEtaMax_ ;
-    double bjetPtMin_ ; 
-    double fatJetPtMin_ ; 
-    double fatJetPtMax_ ; 
-    double fatJetAbsEtaMax_ ;
-    double fatJetMassMin_ ;
-    double fatJetMassMax_ ; 
-    double fatJetPrunedMassMin_ ;
-    double fatJetPrunedMassMax_ ; 
-    double fatJetTau2ByTau1Min_ ; 
-    double subjet1CSVDiscMin_ ; 
-    double subjet1CSVDiscMax_ ; 
-    double subjet2CSVDiscMin_ ; 
-    double subjet2CSVDiscMax_ ; 
-    double HTMin_ ; 
-    double HTMax_ ; 
+    int                             maxEvents_; 
+    const int                       reportEvery_; 
+    const std::string               inputTTree_;
+    const std::vector<std::string>  inputFiles_;
+    const std::string	              inFile_;
+
+    const double jetPtMin_ ; 
+    const double jetPtMax_ ; 
+    const double jetAbsEtaMax_ ;
+    const double bjetPtMin_ ; 
+    const double fatJetPtMin_ ; 
+    const double fatJetPtMax_ ; 
+    const double fatJetAbsEtaMax_ ;
+    const double fatJetMassMin_ ;
+    const double fatJetMassMax_ ; 
+    const double fatJetPrunedMassMin_ ;
+    const double fatJetPrunedMassMax_ ; 
+    const double fatJetTau2ByTau1Min_ ; 
+    const double subjet1CSVDiscMin_ ; 
+    const double subjet1CSVDiscMax_ ; 
+    const double subjet2CSVDiscMin_ ; 
+    const double subjet2CSVDiscMax_ ; 
+    const double HTMin_ ; 
+    const double HTMax_ ; 
+
+    TChain*                   chain_;
 
     EvtInfoBranches    EvtInfo;
     VertexInfoBranches VtxInfo;
@@ -219,6 +222,7 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
 //
 BprimeTobHAnalysis::BprimeTobHAnalysis(const edm::ParameterSet& iConfig) : 
   maxEvents_(iConfig.getParameter<int>("MaxEvents")), 
+  reportEvery_(iConfig.getParameter<int>("ReportEvery")),
   inputTTree_(iConfig.getParameter<std::string>("InputTTree")),
   inputFiles_(iConfig.getParameter<std::vector<std::string> >("InputFiles")),
   inFile_(iConfig.getParameter<std::string>("InputFile")),
@@ -376,7 +380,7 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
     int njets(0) ; 
     double HT(0) ; 
 
-    edm::LogInfo("Event") << entry << " of " << maxEvents_ ; 
+    if((entry%reportEvery_) == 0) edm::LogInfo("Event") << entry << " of " << maxEvents_ ; 
 
     chain_->GetEntry(entry);
 
@@ -451,8 +455,6 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
       int iSubJet1 = FatJetInfo.Jet_SubJet1Idx[ifatjet];
       int iSubJet2 = FatJetInfo.Jet_SubJet2Idx[ifatjet];
-
-      edm::LogInfo("SubJetIndices") << " Subjet1 : " << iSubJet1 << " Subjet2 : " << iSubJet2 ; 
 
       if( SubJetInfo.Pt[iSubJet1]==0. || SubJetInfo.Pt[iSubJet2]==0. ) 
         continue; //// skip fat jets for which one of the subjets has pT=0
@@ -553,7 +555,6 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     }
 
-    //DM edm::LogInfo("SubJetSize") << "Sub size " << SubJetInfo.Size; // Test
     //DM for (int isubjet=0; isubjet < SubJetInfo.Size; ++isubjet) {
     //DM 	h_SubJets_Pt->Fill(SubJetInfo.Pt[isubjet]);
     //DM } //// Loop over subjets  
