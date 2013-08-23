@@ -81,7 +81,7 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     const int                       reportEvery_; 
     const std::string               inputTTree_;
     const std::vector<std::string>  inputFiles_;
-    const std::string	              inFile_;
+    //const std::string	              inFile_;
 
     const double jetPtMin_ ; 
     const double jetPtMax_ ; 
@@ -215,6 +215,8 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     TH1D* h_HiggsPtMatchedJet ; 
     TEfficiency* teff_HiggsJetMatch ; 
 
+    TH1D* h_cutflow ; 
+
 };
 
 //
@@ -225,7 +227,7 @@ BprimeTobHAnalysis::BprimeTobHAnalysis(const edm::ParameterSet& iConfig) :
   reportEvery_(iConfig.getParameter<int>("ReportEvery")),
   inputTTree_(iConfig.getParameter<std::string>("InputTTree")),
   inputFiles_(iConfig.getParameter<std::vector<std::string> >("InputFiles")),
-  inFile_(iConfig.getParameter<std::string>("InputFile")),
+  //inFile_(iConfig.getParameter<std::string>("InputFile")),
   //outFile_(iConfig.getUntrackedParameter<std::string>("OutputFile")), 
   jetPtMin_(iConfig.getParameter<double>("JetPtMin")),
   jetPtMax_(iConfig.getParameter<double>("JetPtMax")),
@@ -321,6 +323,8 @@ void BprimeTobHAnalysis::beginJob() {
   h_bprimePt                   = fs->make<TH1D>("h_bprimePt"                  ,"b' p_{T} [GeV]"             ,100 ,0.  ,2000.);
   h_bprimeMass                 = fs->make<TH1D>("h_bprimeMass"                ,"b' mass [GeV]"              ,40  ,0.  ,2000.);
 
+  h_cutflow                    = fs->make<TH1D>("h_cutflow"                   ,"Cut flow"                   ,20  ,0.  ,20.  ); 
+
   teff_HiggsJetMatch           = fs->make<TEfficiency>("teff_HiggsJetMatch" ,"Higgs-Jet matching efficiency" ,100 ,0.  ,2000.) ; 
 
   h_FatJets_Pt                 -> Sumw2() ; 
@@ -357,6 +361,14 @@ void BprimeTobHAnalysis::beginJob() {
   h_bprimePt   -> Sumw2() ; 
   h_bprimeMass -> Sumw2() ; 
 
+  h_cutflow    -> Sumw2() ; 
+
+  h_cutflow -> GetXaxis() -> SetBinLabel(1,"All events") ; 
+  h_cutflow -> GetXaxis() -> SetBinLabel(2,"Trigger (Data)") ; 
+  h_cutflow -> GetXaxis() -> SetBinLabel(3,"Higgs jet >= 1") ; 
+  h_cutflow -> GetXaxis() -> SetBinLabel(4,"b jet >= 2") ; 
+  h_cutflow -> GetXaxis() -> SetBinLabel(5,"HT > 1000 GeV") ; 
+
   return ;  
 
 }
@@ -383,6 +395,8 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
     if((entry%reportEvery_) == 0) edm::LogInfo("Event") << entry << " of " << maxEvents_ ; 
 
     chain_->GetEntry(entry);
+
+    h_cutflow -> Fill("All events", 1) ; 
 
     TLorentzVector higgs_p4 ; 
     for (int igen=0; igen < GenInfo.Size; ++igen) {
@@ -501,7 +515,6 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     } //// Loop over fat jets 
 
-
     for (int ijet = 0; ijet < JetInfo.Size; ++ijet) { 
 
       if ( JetInfo.Pt[ijet] < jetPtMin_ || JetInfo.Pt[ijet] > jetPtMax_ ) continue ; 
@@ -519,40 +532,48 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     }
 
-    if (higgsJets.size() >= 1 
-        && bJets.size() >= 2 ) { 
+    if (higgsJets.size() >= 1) {
 
-      for (std::vector<TLorentzVector>::const_iterator ihig = higgsJets.begin(); ihig != higgsJets.end(); ++ihig) { 
-        HT += ihig->Pt() ; 
-      }
-      for (std::vector<TLorentzVector>::const_iterator ib = bJets.begin(); ib != bJets.end(); ++ib) { 
-        HT += ib->Pt() ; 
-      }
+      h_cutflow -> Fill("Higgs jet >= 1", 1) ; 
 
-      if (HT < HTMin_ || HT > HTMax_) continue ; 
+      if (bJets.size() >= 2 ) { 
 
-      for (std::vector<TLorentzVector>::const_iterator ihig = higgsJets.begin(); ihig != higgsJets.end(); ++ihig) { 
-        const TLorentzVector* closestB_p4 ;
-        double deltaR(TMath::Pi()) ; 
-        for (std::vector<TLorentzVector>::const_iterator ib = bJets.begin(); ib != bJets.end(); ++ib) { 
-          if (ihig->DeltaR(*ib) > 1.2 && ihig->DeltaPhi(*ib) < TMath::PiOver2()) {
-            if ( ihig->DeltaR(*ib) < deltaR) {
-              deltaR = ihig->DeltaR(*ib) ; 
-              closestB_p4 = &(*ib) ; 
-            }
-          }
-          bprimes.push_back(*ihig + *closestB_p4) ; 
-          h_bprimePt   -> Fill((*ihig + *closestB_p4).Pt()) ; 
-          h_bprimeMass-> Fill((*ihig + *closestB_p4).Mag()) ;
+        h_cutflow -> Fill("b jet >= 2", 1) ;
+
+        for (std::vector<TLorentzVector>::const_iterator ihig = higgsJets.begin(); ihig != higgsJets.end(); ++ihig) { 
+          HT += ihig->Pt() ; 
         }
+        for (std::vector<TLorentzVector>::const_iterator ib = bJets.begin(); ib != bJets.end(); ++ib) { 
+          HT += ib->Pt() ; 
+        }
+
+        if (HT < HTMin_ || HT > HTMax_) continue ; 
+
+        h_cutflow -> Fill("HT > 1000 GeV", 1) ; 
+
+        for (std::vector<TLorentzVector>::const_iterator ihig = higgsJets.begin(); ihig != higgsJets.end(); ++ihig) { 
+          const TLorentzVector* closestB_p4 ;
+          double deltaR(TMath::Pi()) ; 
+          for (std::vector<TLorentzVector>::const_iterator ib = bJets.begin(); ib != bJets.end(); ++ib) { 
+            if (ihig->DeltaR(*ib) > 1.2 && ihig->DeltaPhi(*ib) < TMath::PiOver2()) {
+              if ( ihig->DeltaR(*ib) < deltaR) {
+                deltaR = ihig->DeltaR(*ib) ; 
+                closestB_p4 = &(*ib) ; 
+              }
+            }
+            bprimes.push_back(*ihig + *closestB_p4) ; 
+            h_bprimePt   -> Fill((*ihig + *closestB_p4).Pt()) ; 
+            h_bprimeMass-> Fill((*ihig + *closestB_p4).Mag()) ;
+          }
+        }
+
+        h_nJets  -> Fill(njets) ; 
+        h_nBJets -> Fill(bJets.size()) ; 
+        h_nHJets -> Fill(higgsJets.size()) ; 
+
+        h_HT -> Fill(HT) ; 
+
       }
-
-      h_nJets  -> Fill(njets) ; 
-      h_nBJets -> Fill(bJets.size()) ; 
-      h_nHJets -> Fill(higgsJets.size()) ; 
-
-      h_HT -> Fill(HT) ; 
-
     }
 
     //DM for (int isubjet=0; isubjet < SubJetInfo.Size; ++isubjet) {

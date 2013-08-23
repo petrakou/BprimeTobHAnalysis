@@ -95,7 +95,7 @@ options.register('hTMax', 1.E6,
     "Maximum HT"
     )
 
-options.setDefault('maxEvents', 1000) 
+options.setDefault('maxEvents', -10000) 
 
 process = cms.Process("BprimebH")
 
@@ -120,7 +120,7 @@ process.BprimebH = cms.EDAnalyzer('BprimeTobHAnalysis',
     ReportEvery         = cms.int32(options.reportEvery),  
     InputTTree          = cms.string('ntuple/tree'),
     InputFiles          = cms.vstring(FileNames), 
-    InputFile           = cms.string(FileNames[0]),
+    #InputFile           = cms.string(FileNames[0]),
     JetPtMin            = cms.double(options.jetPtMin),
     JetPtMax            = cms.double(options.jetPtMax),
     JetAbsEtaMax        = cms.double(2.4),
