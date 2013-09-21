@@ -2,9 +2,15 @@ import FWCore.ParameterSet.Config as cms
 
 from FWCore.ParameterSet.VarParsing import VarParsing
 
+#from BprimebHAnalysis.BprimeTobHAnalysis.bprimetobhanalysis_cfi import *
+#from BprimebHAnalysis.BprimeTobHAnalysis.TTJets_Hadronic.TTJets_Hadronic_00_cfi import *
+#from BprimebHAnalysis.BprimeTobHAnalysis.BpBpToBHTWinc.BprimeBprimeTobHtWinc_M_1000_cfi import *
+from BprimebHAnalysis.BprimeTobHAnalysis.BpBpToBHTWinc.BprimeBprimeTobHtWinc_M_1500_cfi import *
+#from BprimebHAnalysis.BprimeTobHAnalysis.BpBpToBHTWinc.BprimeBprimeTobHtWinc_M_800_cfi import *
+
 options = VarParsing('python')
 
-options.register('outFilename', 'file_QCD_Pt_1400_1800.root',
+options.register('outFilename', 'file.root',
     VarParsing.multiplicity.singleton,
     VarParsing.varType.string,
     "Output file name"
@@ -95,7 +101,9 @@ options.register('hTMax', 1.E6,
     "Maximum HT"
     )
 
-options.setDefault('maxEvents', -10000) 
+options.setDefault('maxEvents', -50000) 
+
+options.parseArguments()
 
 process = cms.Process("BprimebH")
 
@@ -113,14 +121,11 @@ process.TFileService = cms.Service("TFileService",
     fileName = cms.string(options.outFilename) 
     )
 
-from BprimebHAnalysis.BprimeTobHAnalysis.bprimetobhanalysis_cfi import *
-
 process.BprimebH = cms.EDAnalyzer('BprimeTobHAnalysis',
     MaxEvents           = cms.int32(options.maxEvents),
     ReportEvery         = cms.int32(options.reportEvery),  
     InputTTree          = cms.string('ntuple/tree'),
     InputFiles          = cms.vstring(FileNames), 
-    #InputFile           = cms.string(FileNames[0]),
     JetPtMin            = cms.double(options.jetPtMin),
     JetPtMax            = cms.double(options.jetPtMax),
     JetAbsEtaMax        = cms.double(2.4),

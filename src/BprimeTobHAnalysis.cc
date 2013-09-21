@@ -28,6 +28,7 @@ Implementation:
 #include <fstream>
 #include <assert.h>
 #include <vector>
+#include <map>
 
 #include <TLorentzVector.h>
 #include <TChain.h>
@@ -68,6 +69,11 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     virtual void beginJob() ;
     virtual void analyze(const edm::Event&, const edm::EventSetup&);
     virtual void endJob() ;
+
+    virtual void CreateHistos(const TString&) ; 
+    virtual void AddHisto(const TString&, const TString& ,const int&, const double&, const double&) ; 
+    template <class Type>
+      void FillHisto(const TString& name, const Type value, const double weight);
 
     // ----------member data ---------------------------
 
@@ -114,6 +120,9 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     LepInfoBranches    LepInfo;
 
     edm::Service<TFileService> fs; 
+
+    bool isData_ ; 
+    float evtwt_ ; 
 
     TH1I*              h_FatJets_Index;
     TH1I*              h_FatJets_NTracks;
@@ -217,6 +226,8 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
 
     TH1D* h_cutflow ; 
 
+    std::map<TString, TH1D*> hmap_1d ;  
+
 };
 
 //
@@ -246,8 +257,11 @@ BprimeTobHAnalysis::BprimeTobHAnalysis(const edm::ParameterSet& iConfig) :
   subjet2CSVDiscMin_(iConfig.getParameter<double>("Subjet2CSVDiscMin")),
   subjet2CSVDiscMax_(iConfig.getParameter<double>("Subjet2CSVDiscMax")),
   HTMin_(iConfig.getParameter<double>("HTMin")), 
-  HTMax_(iConfig.getParameter<double>("HTMax"))  
+  HTMax_(iConfig.getParameter<double>("HTMax")),
+  isData_(0),
+  evtwt_(1) 
 { 
+
 
 }
 
@@ -257,7 +271,6 @@ BprimeTobHAnalysis::~BprimeTobHAnalysis() {
   //newfile_->Close();
   //delete newfile_;
 }
-
 
 // ------------ method called once each job just before starting event loop  ------------
 void BprimeTobHAnalysis::beginJob() { 
@@ -363,16 +376,52 @@ void BprimeTobHAnalysis::beginJob() {
 
   h_cutflow    -> Sumw2() ; 
 
-  h_cutflow -> GetXaxis() -> SetBinLabel(1,"All events") ; 
-  h_cutflow -> GetXaxis() -> SetBinLabel(2,"Trigger (Data)") ; 
-  h_cutflow -> GetXaxis() -> SetBinLabel(3,"Higgs jet >= 1") ; 
-  h_cutflow -> GetXaxis() -> SetBinLabel(4,"b jet >= 2") ; 
-  h_cutflow -> GetXaxis() -> SetBinLabel(5,"HT > 1000 GeV") ; 
+  h_cutflow -> GetXaxis() -> SetBinLabel(1,"AllEvents") ; 
+  h_cutflow -> GetXaxis() -> SetBinLabel(2,"TriggerSel") ; 
+  h_cutflow -> GetXaxis() -> SetBinLabel(3,"HiggsJetSel") ; 
+  h_cutflow -> GetXaxis() -> SetBinLabel(4,"BJetsSel") ; 
+  h_cutflow -> GetXaxis() -> SetBinLabel(5,"HTSel") ; 
+
+  for (int ii = 1; ii <= 5; ++ii) 
+    CreateHistos(h_cutflow->GetXaxis()->GetBinLabel(ii)) ; 
 
   return ;  
 
 }
 
+void BprimeTobHAnalysis::CreateHistos(const TString& cutname) {
+
+  AddHisto(cutname ,"_nJets"  ,20 ,-0.5 ,19.5) ; 
+  AddHisto(cutname ,"_nBJets" ,20 ,-0.5 ,19.5) ; 
+  AddHisto(cutname ,"_nHJets" ,20 ,-0.5 ,19.5) ; 
+
+  return ; 
+}
+
+void BprimeTobHAnalysis::AddHisto(const TString& cutname, const TString& histname, const int& nbins, const double& min, const double& max) { 
+
+  TH1D* h1d_mc ; 
+  h1d_mc = fs->make<TH1D>(cutname+histname+"_mc", cutname+histname+"_mc", nbins, max, min);  
+  h1d_mc -> Sumw2() ; 
+  hmap_1d[cutname+histname+"_mc"] = h1d_mc ; 
+
+  TH1D* h1d_data ; 
+  h1d_data = fs->make<TH1D>(cutname+histname+"_data", cutname+histname+"_data", nbins, max, min);  
+  h1d_data -> Sumw2() ; 
+  hmap_1d[cutname+histname+"_data"] = h1d_data ; 
+
+  return ; 
+
+}
+
+template <class Type>
+void BprimeTobHAnalysis::FillHisto(const TString& name, const Type value, const double weight){
+  if (!isData_) hmap_1d[name+"_mc"]->Fill(double(value),weight);
+  else hmap_1d[name+"_data"]->Fill(double(value),weight); 
+
+  return ; 
+
+}
 
 // ------------ method called for each event  ------------
 void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) { 
@@ -396,7 +445,11 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     chain_->GetEntry(entry);
 
-    h_cutflow -> Fill("All events", 1) ; 
+    isData_ = EvtInfo.McFlag ? 0 : 1; 
+    evtwt_  = GenInfo.Weight ; 
+
+    h_cutflow -> Fill("AllEvents", 1) ; 
+    FillHisto(TString("AllEvents")+TString("_nJets"), JetInfo.Size, evtwt_) ; 
 
     TLorentzVector higgs_p4 ; 
     for (int igen=0; igen < GenInfo.Size; ++igen) {
@@ -534,11 +587,13 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     if (higgsJets.size() >= 1) {
 
-      h_cutflow -> Fill("Higgs jet >= 1", 1) ; 
+      h_cutflow -> Fill("HiggsJetSel", 1) ; 
+      FillHisto(TString("HiggsJetSel")+TString("_nJets"), njets, 1) ; 
 
       if (bJets.size() >= 2 ) { 
 
-        h_cutflow -> Fill("b jet >= 2", 1) ;
+        h_cutflow -> Fill("BJetsSel", 1) ;
+        FillHisto(TString("BJetsSel")+TString("_nJets"), JetInfo.Size, evtwt_) ; 
 
         for (std::vector<TLorentzVector>::const_iterator ihig = higgsJets.begin(); ihig != higgsJets.end(); ++ihig) { 
           HT += ihig->Pt() ; 
@@ -549,7 +604,10 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
         if (HT < HTMin_ || HT > HTMax_) continue ; 
 
-        h_cutflow -> Fill("HT > 1000 GeV", 1) ; 
+        h_cutflow -> Fill("HTSel", 1) ; 
+        FillHisto(TString("HTSel")+TString("_nJets"), njets, 1) ; 
+        FillHisto(TString("HTSel")+TString("_nBJets"), bJets.size(), 1) ; 
+        FillHisto(TString("HTSel")+TString("_nHJets"), higgsJets.size(), 1) ; 
 
         for (std::vector<TLorentzVector>::const_iterator ihig = higgsJets.begin(); ihig != higgsJets.end(); ++ihig) { 
           const TLorentzVector* closestB_p4 ;
