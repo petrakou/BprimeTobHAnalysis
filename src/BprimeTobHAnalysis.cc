@@ -15,10 +15,10 @@ Implementation:
 //
 // Original Author:  Eleni Petrakou,27 2-020,+41227674870,
 //         Created:  Tue Jul 16 19:48:47 CEST 2013
+// Second Author:    Devdatta Majumder 
 // $Id$
 //
 //
-
 
 // system include files
 #include <memory>
@@ -30,6 +30,7 @@ Implementation:
 #include <vector>
 #include <map>
 
+// Root headers 
 #include <TLorentzVector.h>
 #include <TChain.h>
 #include <TFile.h>
@@ -64,7 +65,6 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
 
     static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
-
   private:
     virtual void beginJob() ;
     virtual void analyze(const edm::Event&, const edm::EventSetup&);
@@ -79,15 +79,10 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
 
     //// Configurables 
 
-    //bool               debug;
-    //std::string        outFile_;
-    //TTree		 *newtree;
-
     int                             maxEvents_; 
     const int                       reportEvery_; 
     const std::string               inputTTree_;
     const std::vector<std::string>  inputFiles_;
-    //const std::string	              inFile_;
 
     const double jetPtMin_ ; 
     const double jetPtMax_ ; 
@@ -108,7 +103,7 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     const double HTMin_ ; 
     const double HTMax_ ; 
 
-    TChain*                   chain_;
+    TChain*            chain_;
 
     EvtInfoBranches    EvtInfo;
     VertexInfoBranches VtxInfo;
@@ -238,8 +233,6 @@ BprimeTobHAnalysis::BprimeTobHAnalysis(const edm::ParameterSet& iConfig) :
   reportEvery_(iConfig.getParameter<int>("ReportEvery")),
   inputTTree_(iConfig.getParameter<std::string>("InputTTree")),
   inputFiles_(iConfig.getParameter<std::vector<std::string> >("InputFiles")),
-  //inFile_(iConfig.getParameter<std::string>("InputFile")),
-  //outFile_(iConfig.getUntrackedParameter<std::string>("OutputFile")), 
   jetPtMin_(iConfig.getParameter<double>("JetPtMin")),
   jetPtMax_(iConfig.getParameter<double>("JetPtMax")),
   jetAbsEtaMax_(iConfig.getParameter<double>("JetAbsEtaMax")),
@@ -262,21 +255,15 @@ BprimeTobHAnalysis::BprimeTobHAnalysis(const edm::ParameterSet& iConfig) :
   evtwt_(1) 
 { 
 
-
 }
 
 
 BprimeTobHAnalysis::~BprimeTobHAnalysis() { 
   delete chain_;
-  //newfile_->Close();
-  //delete newfile_;
 }
 
 // ------------ method called once each job just before starting event loop  ------------
 void BprimeTobHAnalysis::beginJob() { 
-
-  //chain_ = new TChain("ntuple/tree");
-  //chain_->Add(inFile_.c_str());
 
   chain_ = new TChain(inputTTree_.c_str());
 
@@ -436,6 +423,7 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     //// Event variables 
     std::vector<TLorentzVector>higgsJets ; 
+    std::vector<TLorentzVector>jets ; 
     std::vector<TLorentzVector>bJets ; 
     std::vector<TLorentzVector>bprimes ; 
     int njets(0) ; 
@@ -571,19 +559,40 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
     for (int ijet = 0; ijet < JetInfo.Size; ++ijet) { 
 
       if ( JetInfo.Pt[ijet] < jetPtMin_ || JetInfo.Pt[ijet] > jetPtMax_ ) continue ; 
-      if ( fabs(FatJetInfo.Eta[ijet]) > jetAbsEtaMax_ ) continue ; 
+      if ( fabs(JetInfo.Eta[ijet]) > jetAbsEtaMax_ ) continue ; 
       if ( JetInfo.JetIDTIGHT[ijet]==0 ) continue ; 
 
       ++njets ; 
 
+      TLorentzVector jet_p4;
+      jet_p4.SetPtEtaPhiM(JetInfo.Pt[ijet], JetInfo.Eta[ijet], 
+          JetInfo.Phi[ijet], JetInfo.Mass[ijet]);
+
+      bool isJetNotHiggs(false) ; 
+      for (std::vector<TLorentzVector>::const_iterator ihig = higgsJets.begin(); ihig != higgsJets.end(); ++ihig) {
+        if (jet_p4.DeltaR(*ihig) < 1.2) {
+          isJetNotHiggs = false ; 
+          break ; 
+        }
+        else {
+          isJetNotHiggs = true ; 
+        } 
+      } 
+      if (!isJetNotHiggs) continue ; //// Higgs-b jet disambiguation  
+
+      jets.push_back(jet_p4) ; 
+
       if (JetInfo.Pt[ijet] > bjetPtMin_ && JetInfo.CombinedSVBJetTags[ijet] > 0.679) {
+
         TLorentzVector bjet_p4;
         bjet_p4.SetPtEtaPhiM(JetInfo.Pt[ijet], JetInfo.Eta[ijet], 
             JetInfo.Phi[ijet], JetInfo.Mass[ijet]);
-        bJets.push_back(bjet_p4) ; 
-      }
 
-    }
+        bJets.push_back(bjet_p4) ; 
+
+      } //// Select b-tagged AK5 jets 
+
+    } //// Loop over AK5 jets 
 
     if (higgsJets.size() >= 1) {
 
