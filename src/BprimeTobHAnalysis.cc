@@ -425,7 +425,11 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
     std::vector<TLorentzVector>higgsJets ; 
     std::vector<TLorentzVector>jets ; 
     std::vector<TLorentzVector>bJets ; 
+    //std::vector<std::pair<int,TLorentzVector> > higgsJets ; 
+    //std::vector<std::pair<int,TLorentzVector> > jets ; 
+    //std::vector<std::pair<int,TLorentzVector> > bJets ; 
     std::vector<TLorentzVector>bprimes ; 
+
     int njets(0) ; 
     double HT(0) ; 
 
@@ -480,7 +484,7 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     for (int ifatjet=0; ifatjet < FatJetInfo.Size; ++ifatjet) {
 
-      h_FatJets_Pt->Fill(FatJetInfo.Pt[ifatjet]);
+      //Fix h_FatJets_Pt->Fill(FatJetInfo.Pt[ifatjet]);
 
       //// Fat jet selection
       if ( FatJetInfo.Pt[ifatjet] < fatJetPtMin_ || FatJetInfo.Pt[ifatjet] > fatJetPtMax_ ) 
@@ -622,12 +626,12 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
           const TLorentzVector* closestB_p4 ;
           double deltaR(TMath::Pi()) ; 
           for (std::vector<TLorentzVector>::const_iterator ib = bJets.begin(); ib != bJets.end(); ++ib) { 
-            if (ihig->DeltaR(*ib) > 1.2 && ihig->DeltaPhi(*ib) < TMath::PiOver2()) {
-              if ( ihig->DeltaR(*ib) < deltaR) {
-                deltaR = ihig->DeltaR(*ib) ; 
-                closestB_p4 = &(*ib) ; 
-              }
+            if ( ihig->DeltaR(*ib) < deltaR) {
+              deltaR = ihig->DeltaR(*ib) ; 
+              closestB_p4 = &(*ib) ; 
             }
+          }
+          if (deltaR < TMath::Pi()) {
             bprimes.push_back(*ihig + *closestB_p4) ; 
             h_bprimePt   -> Fill((*ihig + *closestB_p4).Pt()) ; 
             h_bprimeMass-> Fill((*ihig + *closestB_p4).Mag()) ;
@@ -643,16 +647,6 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
       }
     }
 
-    //DM for (int isubjet=0; isubjet < SubJetInfo.Size; ++isubjet) {
-    //DM 	h_SubJets_Pt->Fill(SubJetInfo.Pt[isubjet]);
-    //DM } //// Loop over subjets  
-
-    //DM for (int ii=0; ii < GenInfo.Size; ++ii) {
-    //DM 	if (GenInfo.Status[ii] == 3 && (TMath::Abs(GenInfo.PdgID[ii])<=6 || GenInfo.PdgID[ii]==22) ) {
-    //DM 		//h_ptJets->Fill(GenInfo.Pt[ii]);
-    //DM 	}
-    //DM }
-
   } //// entry loop 
 
 }
@@ -660,11 +654,6 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
 // ------------ method called once each job just after ending the event loop  ------------
 void BprimeTobHAnalysis::endJob() { 
-  //newfile_->mkdir("BprimeAnalysis");
-  //newfile_->cd("BprimeAnalysis");
-
-  //h_FatJets_Pt->Write();
-  //h_SubJets_Pt->Write();
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------
