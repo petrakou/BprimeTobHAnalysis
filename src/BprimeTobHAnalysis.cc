@@ -432,16 +432,32 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     int njets(0) ; 
     double HT(0) ; 
+    int  nGoodVtxs(0) ;
 
     if((entry%reportEvery_) == 0) edm::LogInfo("Event") << entry << " of " << maxEvents_ ; 
 
     chain_->GetEntry(entry);
+
+    nGoodVtxs = 0 ;
+    /**\ Select good vertices */
+    for (int iVtx=0; iVtx < VtxInfo.Size; ++iVtx) {
+      if (   VtxInfo.Type[iVtx]==1
+          && VtxInfo.isFake[iVtx]==false
+          && VtxInfo.Ndof[iVtx]>4
+          && VtxInfo.Rho[iVtx]<2.
+          && VtxInfo.z[iVtx]<24.) { ++nGoodVtxs ; }
+    }
+    if (nGoodVtxs < 1)  { cout << endl << "Vtx!" << endl; continue ; }
 
     isData_ = EvtInfo.McFlag ? 0 : 1; 
     evtwt_  = GenInfo.Weight ; 
 
     h_cutflow -> Fill("AllEvents", 1) ; 
     FillHisto(TString("AllEvents")+TString("_nJets"), JetInfo.Size, evtwt_) ; 
+
+    if (EvtInfo.TrgBook[3225]==1||EvtInfo.TrgBook[4893]==1) {
+      h_cutflow -> Fill("TriggerSel", 1) ;
+    } else { continue; }
 
     TLorentzVector higgs_p4 ; 
     for (int igen=0; igen < GenInfo.Size; ++igen) {
@@ -644,8 +660,8 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
         h_HT -> Fill(HT) ; 
 
-      }
-    }
+      } //// If at least two b-jets 
+    } //// If at least one Higgs jet 
 
   } //// entry loop 
 
