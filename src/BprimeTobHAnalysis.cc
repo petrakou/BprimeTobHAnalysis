@@ -49,10 +49,12 @@ Implementation:
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
-#include "BprimebHAnalysis/BprimeTobH/interface/format.h"
-#include "BprimebHAnalysis/BprimeTobH/interface/TriggerBooking.h"
-#include "BprimebHAnalysis/BprimeTobH/interface/Njettiness.hh"
-#include "BprimebHAnalysis/BprimeTobH/interface/Nsubjettiness.hh"
+#include "../../BprimeTobH/interface/format.h"
+#include "../../BprimeTobH/interface/TriggerBooking.h"
+#include "../../BprimeTobH/interface/Njettiness.hh"
+#include "../../BprimeTobH/interface/Nsubjettiness.hh"
+
+#include "PhysicsTools/Utilities/interface/LumiReweightingStandAlone.h" 
 
 //
 // class declaration
@@ -70,10 +72,12 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     virtual void analyze(const edm::Event&, const edm::EventSetup&);
     virtual void endJob() ;
 
-    virtual void CreateHistos(const TString&) ; 
-    virtual void AddHisto(const TString&, const TString& ,const int&, const double&, const double&) ; 
+    void CreateHistos(const TString&) ; 
+    void AddHisto(const TString&, const TString& ,const int&, const double&, const double&) ; 
     template <class Type>
       void FillHisto(const TString& name, const Type value, const double weight);
+
+    reweight::LumiReWeighting LumiWeights_; 
 
     // ----------member data ---------------------------
 
@@ -83,6 +87,8 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     const int                       reportEvery_; 
     const std::string               inputTTree_;
     const std::vector<std::string>  inputFiles_;
+
+    const std::vector<int>          hltPaths_; 
 
     const double jetPtMin_ ; 
     const double jetPtMax_ ; 
@@ -117,7 +123,8 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     edm::Service<TFileService> fs; 
 
     bool isData_ ; 
-    float evtwt_ ; 
+    double evtwt_ ; 
+    double puweight_ ; 
 
     TH1I*              h_FatJets_Index;
     TH1I*              h_FatJets_NTracks;
@@ -229,10 +236,12 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
 // constructors and destructor
 //
 BprimeTobHAnalysis::BprimeTobHAnalysis(const edm::ParameterSet& iConfig) : 
+  LumiWeights_("/afs/cern.ch/work/d/devdatta/CMSREL/CMSSW_5_3_11_BpbH/src/pileup_Data_Summer12_53X_S10.root", "/afs/cern.ch/work/d/devdatta/CMSREL/CMSSW_5_3_11_BpbH/src/pileup_Data_Summer12_53X_S10.root", "pileup_data", "pileup_mc"), 
   maxEvents_(iConfig.getParameter<int>("MaxEvents")), 
   reportEvery_(iConfig.getParameter<int>("ReportEvery")),
   inputTTree_(iConfig.getParameter<std::string>("InputTTree")),
   inputFiles_(iConfig.getParameter<std::vector<std::string> >("InputFiles")),
+  hltPaths_(iConfig.getParameter<std::vector<int> >("HLTPaths")),
   jetPtMin_(iConfig.getParameter<double>("JetPtMin")),
   jetPtMax_(iConfig.getParameter<double>("JetPtMax")),
   jetAbsEtaMax_(iConfig.getParameter<double>("JetAbsEtaMax")),
@@ -252,7 +261,8 @@ BprimeTobHAnalysis::BprimeTobHAnalysis(const edm::ParameterSet& iConfig) :
   HTMin_(iConfig.getParameter<double>("HTMin")), 
   HTMax_(iConfig.getParameter<double>("HTMax")),
   isData_(0),
-  evtwt_(1) 
+  evtwt_(1), 
+  puweight_(1)  
 { 
 
 }
@@ -378,9 +388,11 @@ void BprimeTobHAnalysis::beginJob() {
 
 void BprimeTobHAnalysis::CreateHistos(const TString& cutname) {
 
-  AddHisto(cutname ,"_nJets"  ,20 ,-0.5 ,19.5) ; 
-  AddHisto(cutname ,"_nBJets" ,20 ,-0.5 ,19.5) ; 
-  AddHisto(cutname ,"_nHJets" ,20 ,-0.5 ,19.5) ; 
+  AddHisto(cutname ,"_nPVtx_NoPUWt" ,50 ,-0.5 ,49.5) ; 
+  AddHisto(cutname ,"_nPVtx_PUWt"   ,50 ,-0.5 ,49.5) ; 
+  AddHisto(cutname ,"_nJets"        ,20 ,-0.5 ,19.5) ; 
+  AddHisto(cutname ,"_nBJets"       ,20 ,-0.5 ,19.5) ; 
+  AddHisto(cutname ,"_nHJets"       ,20 ,-0.5 ,19.5) ; 
 
   return ; 
 }
@@ -388,12 +400,12 @@ void BprimeTobHAnalysis::CreateHistos(const TString& cutname) {
 void BprimeTobHAnalysis::AddHisto(const TString& cutname, const TString& histname, const int& nbins, const double& min, const double& max) { 
 
   TH1D* h1d_mc ; 
-  h1d_mc = fs->make<TH1D>(cutname+histname+"_mc", cutname+histname+"_mc", nbins, max, min);  
+  h1d_mc = fs->make<TH1D>(cutname+histname+"_mc", cutname+histname+"_mc", nbins, min, max);  
   h1d_mc -> Sumw2() ; 
   hmap_1d[cutname+histname+"_mc"] = h1d_mc ; 
 
   TH1D* h1d_data ; 
-  h1d_data = fs->make<TH1D>(cutname+histname+"_data", cutname+histname+"_data", nbins, max, min);  
+  h1d_data = fs->make<TH1D>(cutname+histname+"_data", cutname+histname+"_data", nbins, min, max);  
   h1d_data -> Sumw2() ; 
   hmap_1d[cutname+histname+"_data"] = h1d_data ; 
 
@@ -421,6 +433,8 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
   for(int entry=0; entry<maxEvents_; entry++) {
 
+    if((entry%reportEvery_) == 0) edm::LogInfo("Event") << entry << " of " << maxEvents_ ; 
+
     //// Event variables 
     std::vector<TLorentzVector>higgsJets ; 
     std::vector<TLorentzVector>jets ; 
@@ -430,13 +444,17 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
     //std::vector<std::pair<int,TLorentzVector> > bJets ; 
     std::vector<TLorentzVector>bprimes ; 
 
+    bool passHLT(false) ; 
+
+    int nGoodVtxs(0) ;
     int njets(0) ; 
     double HT(0) ; 
-    int  nGoodVtxs(0) ;
-
-    if((entry%reportEvery_) == 0) edm::LogInfo("Event") << entry << " of " << maxEvents_ ; 
 
     chain_->GetEntry(entry);
+
+    isData_   = EvtInfo.McFlag ? 0 : 1; 
+    evtwt_    = EvtInfo.Weight*puweight_ ; 
+    puweight_ = LumiWeights_.weight(EvtInfo.TrueIT[0]) ; 
 
     nGoodVtxs = 0 ;
     /**\ Select good vertices */
@@ -447,17 +465,34 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
           && VtxInfo.Rho[iVtx]<2.
           && VtxInfo.z[iVtx]<24.) { ++nGoodVtxs ; }
     }
-    if (nGoodVtxs < 1)  { cout << endl << "Vtx!" << endl; continue ; }
+    if (nGoodVtxs < 1)  { edm::LogInfo("NoGoodPrimaryVertex") << " No good primary vertex " ; continue ; }
 
-    isData_ = EvtInfo.McFlag ? 0 : 1; 
-    evtwt_  = GenInfo.Weight ; 
+    FillHisto(TString("AllEvents")+TString("_nPVtx_NoPUWt"), nGoodVtxs, evtwt_) ; 
 
+    //evtwt_ *= puweight_ ; 
+
+    FillHisto(TString("AllEvents")+TString("_nPVtx_PUWt"), nGoodVtxs, evtwt_) ; 
+    FillHisto(TString("AllEvents")+TString("_nJets"), JetInfo.Size, evtwt_*puweight_) ; 
     h_cutflow -> Fill("AllEvents", 1) ; 
-    FillHisto(TString("AllEvents")+TString("_nJets"), JetInfo.Size, evtwt_) ; 
 
-    if (EvtInfo.TrgBook[3225]==1||EvtInfo.TrgBook[4893]==1) {
-      h_cutflow -> Fill("TriggerSel", 1) ;
-    } else { continue; }
+    //DM if (EvtInfo.TrgBook[3225]==1||EvtInfo.TrgBook[4893]==1) {
+    //DM   h_cutflow -> Fill("TriggerSel", 1) ;
+    //DM } else { continue; }
+
+    for ( std::vector<int>::const_iterator ihlt = hltPaths_.begin();
+        ihlt != hltPaths_.end(); ++ihlt ) { 
+      if (EvtInfo.TrgBook[*ihlt] == 1) { 
+        passHLT = true ; 
+        break ; 
+      }
+      else passHLT = false ; 
+    }
+
+    if ( passHLT ) h_cutflow -> Fill("TriggerSel", 1) ; 
+    else continue ; 
+
+    FillHisto(TString("TriggerSel")+TString("_nPVtx_NoPUWt"), nGoodVtxs, evtwt_) ; 
+    FillHisto(TString("TriggerSel")+TString("_nPVtx_PUWt"), nGoodVtxs, evtwt_*puweight_) ; 
 
     TLorentzVector higgs_p4 ; 
     for (int igen=0; igen < GenInfo.Size; ++igen) {
