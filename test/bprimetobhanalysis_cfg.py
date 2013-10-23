@@ -7,7 +7,7 @@ from BprimeTobHAnalysisv1.BprimeTobHAnalysis.BpBpToBHBHinc.BprimeBprimeTobHbHinc
 
 options = VarParsing('python')
 
-options.register('outFilename', 'file.root',
+options.register('outFilename', 'bprimeTobH.root',
     VarParsing.multiplicity.singleton,
     VarParsing.varType.string,
     "Output file name"
