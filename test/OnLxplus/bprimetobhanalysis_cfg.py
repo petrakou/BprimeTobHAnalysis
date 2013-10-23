@@ -7,7 +7,7 @@ from BprimeTobHAnalysisv1.BprimeTobHAnalysis.BpBpToBHBHinc.BprimeBprimeTobHbHinc
 
 options = VarParsing('python')
 
-options.register('outFilename', 'bprimeTobH.root',
+options.register('outFilename', 'file.root',
     VarParsing.multiplicity.singleton,
     VarParsing.varType.string,
     "Output file name"
@@ -17,7 +17,7 @@ options.register('reportEvery', 1000,
     VarParsing.varType.int,
     "Report every N events (default is N=1000)"
     )
-options.register('jetPtMin', 30.,
+options.register('jetPtMin', 50.,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.float,
     "Minimum jet Pt"
@@ -32,7 +32,7 @@ options.register('bJetPtMin', 100.,
     VarParsing.varType.float,
     "Minimum b jet Pt"
     )
-options.register('fatJetPtMin', 300.,
+options.register('fatJetPtMin', 150.,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.float,
     "Minimum fat jet Pt"
@@ -98,6 +98,12 @@ options.register('hTMax', 1.E6,
     "Maximum HT"
     )
 
+options.register('doPUReweighting', False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Do pileup reweighting"
+)
+
 options.setDefault('maxEvents', -50000) 
 
 options.parseArguments()
@@ -124,6 +130,11 @@ process.BprimebH = cms.EDAnalyzer('BprimeTobHAnalysis',
     InputTTree          = cms.string('ntuple/tree'),
     InputFiles          = cms.vstring(FileNames), 
     HLTPaths            = cms.vint32(3225,4136,4137,5089,5537,5538), 
+    DoPUReweighting     = cms.bool(options.doPUReweighting),
+    File_PUDistMC       = cms.string('pileup_Data_Summer12_53X_S10.root'),
+    File_PUDistData     = cms.string('pileup_Data_Summer12_53X_S10.root'),
+    Hist_PUDistMC       = cms.string('pileup_mc'),
+    Hist_PUDistData     = cms.string('pileup_data'),
     JetPtMin            = cms.double(options.jetPtMin),
     JetPtMax            = cms.double(options.jetPtMax),
     JetAbsEtaMax        = cms.double(2.4),

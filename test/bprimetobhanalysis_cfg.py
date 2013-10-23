@@ -2,11 +2,8 @@ import FWCore.ParameterSet.Config as cms
 
 from FWCore.ParameterSet.VarParsing import VarParsing
 
-#from BprimebHAnalysis.BprimeTobHAnalysis.bprimetobhanalysis_cfi import *
-#from BprimebHAnalysis.BprimeTobHAnalysis.TTJets_Hadronic.TTJets_Hadronic_00_cfi import *
-#from BprimebHAnalysis.BprimeTobHAnalysis.BpBpToBHTWinc.BprimeBprimeTobHtWinc_M_1000_cfi import *
-from BprimebHAnalysis.BprimeTobHAnalysis.BpBpToBHTWinc.BprimeBprimeTobHtWinc_M_1500_cfi import *
-#from BprimebHAnalysis.BprimeTobHAnalysis.BpBpToBHTWinc.BprimeBprimeTobHtWinc_M_800_cfi import *
+from BprimeTobHAnalysisv1.BprimeTobHAnalysis.BpBpToBHBHinc.BprimeBprimeTobHbHinc_M_800_cfi import * 
+#from BprimeTobHAnalysisv1.BprimeTobHAnalysis.Data.JetHT_Run2012BCD_cfi import * 
 
 options = VarParsing('python')
 
@@ -101,6 +98,12 @@ options.register('hTMax', 1.E6,
     "Maximum HT"
     )
 
+options.register('doPUReweighting', False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Do pileup reweighting"
+)
+
 options.setDefault('maxEvents', -50000) 
 
 options.parseArguments()
@@ -126,6 +129,12 @@ process.BprimebH = cms.EDAnalyzer('BprimeTobHAnalysis',
     ReportEvery         = cms.int32(options.reportEvery),  
     InputTTree          = cms.string('ntuple/tree'),
     InputFiles          = cms.vstring(FileNames), 
+    HLTPaths            = cms.vint32(3225,4136,4137,5089,5537,5538), 
+    DoPUReweighting     = cms.bool(options.doPUReweighting),
+    File_PUDistMC       = cms.string('pileup_Data_Summer12_53X_S10.root'),
+    File_PUDistData     = cms.string('pileup_Data_Summer12_53X_S10.root'),
+    Hist_PUDistMC       = cms.string('pileup_mc'),
+    Hist_PUDistData     = cms.string('pileup_data'),
     JetPtMin            = cms.double(options.jetPtMin),
     JetPtMax            = cms.double(options.jetPtMax),
     JetAbsEtaMax        = cms.double(2.4),

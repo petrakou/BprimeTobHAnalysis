@@ -54,6 +54,7 @@ Implementation:
 #include "../../BprimeTobH/interface/Njettiness.hh"
 #include "../../BprimeTobH/interface/Nsubjettiness.hh"
 
+#include "PhysicsTools/Utilities/interface/LumiReWeighting.h"
 #include "PhysicsTools/Utilities/interface/LumiReweightingStandAlone.h" 
 
 //
@@ -77,7 +78,7 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     template <class Type>
       void FillHisto(const TString& name, const Type value, const double weight);
 
-    reweight::LumiReWeighting LumiWeights_; 
+    edm::LumiReWeighting LumiWeights_; 
 
     // ----------member data ---------------------------
 
@@ -87,8 +88,12 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     const int                       reportEvery_; 
     const std::string               inputTTree_;
     const std::vector<std::string>  inputFiles_;
-
     const std::vector<int>          hltPaths_; 
+    const int                       doPUReweighting_ ;
+    const std::string               file_PUDistMC_ ;
+    const std::string               file_PUDistData_ ;
+    const std::string               hist_PUDistMC_ ;
+    const std::string               hist_PUDistData_ ;
 
     const double jetPtMin_ ; 
     const double jetPtMax_ ; 
@@ -236,12 +241,17 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
 // constructors and destructor
 //
 BprimeTobHAnalysis::BprimeTobHAnalysis(const edm::ParameterSet& iConfig) : 
-  LumiWeights_("/afs/cern.ch/work/d/devdatta/CMSREL/CMSSW_5_3_11_BpbH/src/pileup_Data_Summer12_53X_S10.root", "/afs/cern.ch/work/d/devdatta/CMSREL/CMSSW_5_3_11_BpbH/src/pileup_Data_Summer12_53X_S10.root", "pileup_data", "pileup_mc"), 
+  //LumiWeights_("/afs/cern.ch/work/d/devdatta/CMSREL/CMSSW_5_3_11_BpbH/src/pileup_Data_Summer12_53X_S10.root", "/afs/cern.ch/work/d/devdatta/CMSREL/CMSSW_5_3_11_BpbH/src/pileup_Data_Summer12_53X_S10.root", "pileup_data", "pileup_mc"), 
   maxEvents_(iConfig.getParameter<int>("MaxEvents")), 
   reportEvery_(iConfig.getParameter<int>("ReportEvery")),
   inputTTree_(iConfig.getParameter<std::string>("InputTTree")),
   inputFiles_(iConfig.getParameter<std::vector<std::string> >("InputFiles")),
   hltPaths_(iConfig.getParameter<std::vector<int> >("HLTPaths")),
+  doPUReweighting_(iConfig.getParameter<bool>("DoPUReweighting")), 
+  file_PUDistMC_(iConfig.getParameter<std::string>("File_PUDistMC")),
+  file_PUDistData_(iConfig.getParameter<std::string>("File_PUDistData")),
+  hist_PUDistMC_(iConfig.getParameter<std::string>("Hist_PUDistMC")),
+  hist_PUDistData_(iConfig.getParameter<std::string>("Hist_PUDistData")),
   jetPtMin_(iConfig.getParameter<double>("JetPtMin")),
   jetPtMax_(iConfig.getParameter<double>("JetPtMax")),
   jetAbsEtaMax_(iConfig.getParameter<double>("JetAbsEtaMax")),
@@ -264,6 +274,8 @@ BprimeTobHAnalysis::BprimeTobHAnalysis(const edm::ParameterSet& iConfig) :
   evtwt_(1), 
   puweight_(1)  
 { 
+
+  if (doPUReweighting_) LumiWeights_ = edm::LumiReWeighting(file_PUDistMC_, file_PUDistData_, hist_PUDistMC_, hist_PUDistData_) ;
 
 }
 
@@ -453,8 +465,8 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
     chain_->GetEntry(entry);
 
     isData_   = EvtInfo.McFlag ? 0 : 1; 
-    evtwt_    = EvtInfo.Weight*puweight_ ; 
-    puweight_ = LumiWeights_.weight(EvtInfo.TrueIT[0]) ; 
+    evtwt_    = EvtInfo.Weight ; 
+    if ( doPUReweighting_ && !isData_ ) puweight_ = LumiWeights_.weight(EvtInfo.TrueIT[0]) ; 
 
     nGoodVtxs = 0 ;
     /**\ Select good vertices */
@@ -469,15 +481,11 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     FillHisto(TString("AllEvents")+TString("_nPVtx_NoPUWt"), nGoodVtxs, evtwt_) ; 
 
-    //evtwt_ *= puweight_ ; 
-
     FillHisto(TString("AllEvents")+TString("_nPVtx_PUWt"), nGoodVtxs, evtwt_) ; 
     FillHisto(TString("AllEvents")+TString("_nJets"), JetInfo.Size, evtwt_*puweight_) ; 
     h_cutflow -> Fill("AllEvents", 1) ; 
 
-    //DM if (EvtInfo.TrgBook[3225]==1||EvtInfo.TrgBook[4893]==1) {
-    //DM   h_cutflow -> Fill("TriggerSel", 1) ;
-    //DM } else { continue; }
+    //evtwt_ *= puweight_ ; 
 
     for ( std::vector<int>::const_iterator ihlt = hltPaths_.begin();
         ihlt != hltPaths_.end(); ++ihlt ) { 
