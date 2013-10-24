@@ -106,7 +106,7 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     const double fatJetMassMax_ ; 
     const double fatJetPrunedMassMin_ ;
     const double fatJetPrunedMassMax_ ; 
-    const double fatJetTau2ByTau1Min_ ; 
+    const double fatJetTau2ByTau1Max_ ; 
     const double subjet1CSVDiscMin_ ; 
     const double subjet1CSVDiscMax_ ; 
     const double subjet2CSVDiscMin_ ; 
@@ -263,7 +263,7 @@ BprimeTobHAnalysis::BprimeTobHAnalysis(const edm::ParameterSet& iConfig) :
   fatJetMassMax_(iConfig.getParameter<double>("FatJetMassMax")), 
   fatJetPrunedMassMin_(iConfig.getParameter<double>("FatJetPrunedMassMin")),
   fatJetPrunedMassMax_(iConfig.getParameter<double>("FatJetPrunedMassMax")),
-  fatJetTau2ByTau1Min_(iConfig.getParameter<double>("FatJetTau2ByTau1Min")),
+  fatJetTau2ByTau1Max_(iConfig.getParameter<double>("FatJetTau2ByTau1Max")),
   subjet1CSVDiscMin_(iConfig.getParameter<double>("Subjet1CSVDiscMin")),
   subjet1CSVDiscMax_(iConfig.getParameter<double>("Subjet1CSVDiscMax")),
   subjet2CSVDiscMin_(iConfig.getParameter<double>("Subjet2CSVDiscMin")),
@@ -604,7 +604,7 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
       //// Higgs tagging
       if (fatjet_p4.Mag() > fatJetMassMin_ 
           && fatjet_p4.Mag() < fatJetMassMax_ 
-          && FatJetInfo.tau2[ifatjet]/FatJetInfo.tau1[ifatjet] < fatJetTau2ByTau1Min_ 
+          && FatJetInfo.tau2[ifatjet]/FatJetInfo.tau1[ifatjet] < fatJetTau2ByTau1Max_ 
           && SubJetInfo.CombinedSVBJetTags[iSubJet1] > subjet1CSVDiscMin_ 
           && SubJetInfo.CombinedSVBJetTags[iSubJet1] < subjet1CSVDiscMax_ 
           && SubJetInfo.CombinedSVBJetTags[iSubJet2] > subjet2CSVDiscMin_ 

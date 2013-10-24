@@ -62,7 +62,7 @@ options.register('fatJetPrunedMassMax', 1.E6,
     VarParsing.varType.float,
     "Maximum fat jet pruned mass"
     )
-options.register('fatJetTau2ByTau1Min', 0.5,
+options.register('fatJetTau2ByTau1Max', 0.5,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.float,
     "Maximum fat jet tau2/tau1"
@@ -146,7 +146,7 @@ process.BprimebH = cms.EDAnalyzer('BprimeTobHAnalysis',
     FatJetMassMax       = cms.double(options.fatJetMassMax),
     FatJetPrunedMassMin = cms.double(options.fatJetPrunedMassMin),
     FatJetPrunedMassMax = cms.double(options.fatJetPrunedMassMax),
-    FatJetTau2ByTau1Min = cms.double(options.fatJetTau2ByTau1Min),
+    FatJetTau2ByTau1Max = cms.double(options.fatJetTau2ByTau1Max),
     Subjet1CSVDiscMin   = cms.double(options.subjet1CSVDiscMin),
     Subjet1CSVDiscMax   = cms.double(options.subjet1CSVDiscMax),
     Subjet2CSVDiscMin   = cms.double(options.subjet2CSVDiscMin),
