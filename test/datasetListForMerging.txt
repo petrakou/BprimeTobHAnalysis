@@ -1,38 +1,48 @@
-BprimeBprimeTobHbHinc_M_1500: L=19784
-file_BprimeBprimeTobHbHinc_M_1500 0.0000481 
+DATA:
+# Dataset_name                                      xs (in pb, for data set to -1)
+/Jet/Run2012A-22Jan2013-v1/AOD                     -1
+/Jet/Run2012A_missingPart-22Jan2013-v1/AOD         -1
+/JetHT/Run2012B-22Jan2013-v1/AOD                   -1
+/JetHT/Run2012B_missingPart-22Jan2013-v1/AOD       -1
+/JetHT/Run2012C-22Jan2013-v1/AOD                   -1
+/JetHT/Run2012D-22Jan2013-v1/AOD                   -1
+/JetHT/Run2012D_missingPart-22Jan2013-v1/AOD       -1
 
-BprimeBprimeTobHbHinc_M_1000: L=19784
-file_BprimeBprimeTobHbHinc_M_1000 0.00328
+BprimeBprimeToBHBHinc_M-1000: L=19707
+# Dataset_name                                                                                       xs (in pb, for data set to -1)
+/BprimeBprimeToBHBHinc_M-1000_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1/AODSIM   0.00328
+BprimeBprimeToBHBHinc_M-1200: L=19707
+/BprimeBprimeToBHBHinc_M-1200_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1/AODSIM   0.000585
+BprimeBprimeToBHBHinc_M-1500: L=19707
+/BprimeBprimeToBHBHinc_M-1500_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7C-v1/AODSIM   0.0000481
+BprimeBprimeToBHBHinc_M-450: L=19707
+/BprimeBprimeToBHBHinc_M-450_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM    1.153 
+BprimeBprimeToBHBHinc_M-500: L=19707
+/BprimeBprimeToBHBHinc_M-500_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM    0.590 
+BprimeBprimeToBHBHinc_M-550: L=19707
+/BprimeBprimeToBHBHinc_M-550_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM    0.315 
+BprimeBprimeToBHBHinc_M-600: L=19707
+/BprimeBprimeToBHBHinc_M-600_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM    0.174 
+BprimeBprimeToBHBHinc_M-650: L=19707
+/BprimeBprimeToBHBHinc_M-650_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM    0.0999 
+BprimeBprimeToBHBHinc_M-700: L=19707
+/BprimeBprimeToBHBHinc_M-700_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM    0.0585 
+BprimeBprimeToBHBHinc_M-750: L=19707
+/BprimeBprimeToBHBHinc_M-750_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM    0.0350 
+BprimeBprimeToBHBHinc_M-800: L=19707 
+/BprimeBprimeToBHBHinc_M-800_TuneZ2star_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM    0.0213 
 
-BprimeBprimeTobHbHinc_M_1200: L=19784
-file_BprimeBprimeTobHbHinc_M_1200 0.000585 
+QCD: L=19707
+# Dataset_name                                                                                       xs (in pb, for data set to -1)
+/QCD_Pt-170to300_TuneZ2star_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v2/AODSIM                 34138.15
+/QCD_Pt-300to470_TuneZ2star_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v2/AODSIM                 1759.549
+/QCD_Pt-470to600_TuneZ2star_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v2/AODSIM                 113.8791
+/QCD_Pt-600to800_TuneZ2star_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v2/AODSIM                 26.9921
+/QCD_Pt-800to1000_TuneZ2star_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v2/AODSIM                3.550036
+/QCD_Pt-1000to1400_TuneZ2star_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM               0.737844
+/QCD_Pt-1400to1800_TuneZ2star_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM               0.03352235
+/QCD_Pt-1800_TuneZ2star_8TeV_pythia6/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM                     0.001829005
 
-BprimeBprimeTobHbHinc_M_800: L=19784
-file_BprimeBprimeTobHbHinc_M_800 0.0208
-
-#BprimeBprimeTobHtWinc_M_1000: L=19784
-#file_BprimeBprimeTobHtWinc_M_1000 0.00328
-
-#BprimeBprimeTobHtWinc_M_1200: L=19784
-#file_BprimeBprimeTobHtWinc_M_1200 0.000585 
-
-#BprimeBprimeTobHtWinc_M_1500: L=19784
-#file_BprimeBprimeTobHtWinc_M_1500 0.0000481 
-
-#BprimeBprimeTobHtWinc_M_800: L=19784
-#file_BprimeBprimeTobHtWinc_M_800 0.0208
-
-QCD: L=19784 
-# Dataset_name xs (in pb, for data set to -1)
-file_QCD_Pt_170to300 34138.15
-file_QCD_Pt_300to470 1759.549
-file_QCD_Pt_470to600 113.8791
-file_QCD_Pt_600to800 26.9921
-file_QCD_Pt_800to1000 3.550036
-file_QCD_Pt_1000to1400 0.737844
-file_QCD_Pt_1400to1800 0.03352235
-file_QCD_Pt_1800 0.001829005
-
-TTJets_Hadronic: L=19784
-file_TTJets_Hadronic 112.3247008 
-
+TTJets: L=19707
+# Dataset_name                                                                                       xs (in pb, for data set to -1)
+/TTJets_HadronicMGDecays_8TeV-madgraph/Summer12_DR53X-PU_S10_START53_V7A-v1/AODSIM                   112.3247008

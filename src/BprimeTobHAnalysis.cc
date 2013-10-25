@@ -480,12 +480,9 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
     if (nGoodVtxs < 1)  { edm::LogInfo("NoGoodPrimaryVertex") << " No good primary vertex " ; continue ; }
 
     FillHisto(TString("AllEvents")+TString("_nPVtx_NoPUWt"), nGoodVtxs, evtwt_) ; 
-
-    FillHisto(TString("AllEvents")+TString("_nPVtx_PUWt"), nGoodVtxs, evtwt_) ; 
+    FillHisto(TString("AllEvents")+TString("_nPVtx_PUWt"), nGoodVtxs, evtwt_*puweight_) ; 
     FillHisto(TString("AllEvents")+TString("_nJets"), JetInfo.Size, evtwt_*puweight_) ; 
     h_cutflow -> Fill("AllEvents", 1) ; 
-
-    //evtwt_ *= puweight_ ; 
 
     for ( std::vector<int>::const_iterator ihlt = hltPaths_.begin();
         ihlt != hltPaths_.end(); ++ihlt ) { 
@@ -501,6 +498,8 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     FillHisto(TString("TriggerSel")+TString("_nPVtx_NoPUWt"), nGoodVtxs, evtwt_) ; 
     FillHisto(TString("TriggerSel")+TString("_nPVtx_PUWt"), nGoodVtxs, evtwt_*puweight_) ; 
+
+    evtwt_ *= puweight_ ; 
 
     TLorentzVector higgs_p4 ; 
     for (int igen=0; igen < GenInfo.Size; ++igen) {
