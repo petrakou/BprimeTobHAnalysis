@@ -1,0 +1,6 @@
+<bin name="HistCummulative" file="histCummulative.cc">
+  <use name="BprimeTobHAnalysisv1/BprimeTobHAnalysis"/> 
+  <use name="root"/>
+</bin>
+
+
