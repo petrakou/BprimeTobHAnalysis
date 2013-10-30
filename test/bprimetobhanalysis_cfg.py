@@ -2,8 +2,9 @@ import FWCore.ParameterSet.Config as cms
 
 from FWCore.ParameterSet.VarParsing import VarParsing
 
-from BprimeTobHAnalysisv1.BprimeTobHAnalysis.BpBpToBHBHinc.BprimeBprimeTobHbHinc_M_800_cfi import * 
+#from BprimeTobHAnalysisv1.BprimeTobHAnalysis.BpBpToBHBHinc.BprimeBprimeTobHbHinc_M_800_cfi import * 
 #from BprimeTobHAnalysisv1.BprimeTobHAnalysis.Data.JetHT_Run2012BCD_cfi import * 
+from inputFiles_cfi import * 
 
 options = VarParsing('python')
 
@@ -98,13 +99,13 @@ options.register('hTMax', 1.E6,
     "Maximum HT"
     )
 
-options.register('doPUReweighting', False,
+options.register('doPUReweighting', True,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.bool,
     "Do pileup reweighting"
 )
 
-options.setDefault('maxEvents', -50000) 
+options.setDefault('maxEvents', -1000) 
 
 options.parseArguments()
 
