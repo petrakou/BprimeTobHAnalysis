@@ -339,7 +339,7 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
     chain_->GetEntry(entry);
 
     isData_   = EvtInfo.McFlag ? 0 : 1; 
-    evtwt_    = EvtInfo.Weight ; 
+    if ( !isData_ ) evtwt_    = EvtInfo.Weight ; 
     if ( doPUReweighting_ && !isData_ ) puweight_ = LumiWeights_.weight(EvtInfo.TrueIT[0]) ; 
 
     nGoodVtxs = 0 ;
