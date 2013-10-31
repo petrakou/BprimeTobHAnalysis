@@ -28,12 +28,12 @@ options.register('jetPtMax', 1.E6,
     VarParsing.varType.float,
     "Maximum jet Pt"
     )
-options.register('bJetPtMin', 100.,
+options.register('bJetPtMin', 80.,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.float,
     "Minimum b jet Pt"
     )
-options.register('fatJetPtMin', 150.,
+options.register('fatJetPtMin', 300.,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.float,
     "Minimum fat jet Pt"
