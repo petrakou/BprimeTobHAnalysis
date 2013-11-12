@@ -74,5 +74,7 @@ void CMSstyle(){
  // restore the plain style
  gROOT->SetStyle("Plain");
  gROOT->SetStyle("CMS");
+
  return ;
+
 }

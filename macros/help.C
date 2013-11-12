@@ -79,8 +79,8 @@ void beautify(TH1* in, int color=kBlack, int fillstyle=0, int linestyle=1) {
 void beautifyAxis(TAxis* ax) {
   ax->SetLabelFont(132);
   ax->SetTitleFont(132);
-  ax->SetLabelSize(0.05);
-  ax->SetTitleSize(0.06);
+  ax->SetLabelSize(0.07);
+  ax->SetTitleSize(0.09);
 }
 
 void beautifyTopPad(TPad* pad) {
@@ -100,7 +100,7 @@ void beautifyBottomPad(TPad* pad,TAxis* ax,TAxis* ay) {
   pad->SetBorderMode(0);
   pad->SetBorderSize(2);
   pad->SetTopMargin(0.0);
-  pad->SetBottomMargin(0.45);
+  pad->SetBottomMargin(0.52);
   pad->SetFrameFillStyle(0);
   pad->SetFrameBorderMode(0);
   pad->SetFrameFillStyle(0);
@@ -110,14 +110,14 @@ void beautifyBottomPad(TPad* pad,TAxis* ax,TAxis* ay) {
   ax->SetLabelFont(132);
   ax->SetTitleFont(132);
   ax->SetLabelSize(0.18);
-  ax->SetTitleSize(0.22);
-  ax->SetTitleOffset(0.85);
+  ax->SetTitleSize(0.21);
+  ax->SetTitleOffset(0.86);
 
   ay->SetNdivisions(3,4,0);
   ay->SetLabelFont(132);
   ay->SetTitleFont(132);
   ay->SetLabelSize(0.18);
-  ay->SetTitleSize(0.22);
-  ay->SetTitleOffset(0.23);
+  ay->SetTitleSize(0.20);
+  ay->SetTitleOffset(0.34);
 
 }
