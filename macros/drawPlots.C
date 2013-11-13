@@ -27,7 +27,8 @@
 
 using namespace std;
 
-TString filename = "/media/8E22-7ABA/Analysis/FourthGen/BprimebH/Histograms/Histos_31Oct/Final_histograms_BprimebH_PURewt_CorrJetId.root" ; 
+//TString filename = "Final_histograms_BprimebH_PURewt_CorrJetId.root" ; 
+TString filename = "/afs/cern.ch/work/d/devdatta/CMSREL/CMSSW_5_3_11_BpbH/src/BprimeTobHAnalysisv1/BprimeTobHAnalysis/test/OnLxplus/LXBATCH_Jobs_01_PURewt_CorrJetId/Final_histograms_BprimebH.root" ; 
 
 Double_t Lint = 19700.0 ; 
 TString title1 = "CMS Preliminary, 19.7/fb at #sqrt{s} = 8 TeV";
@@ -100,8 +101,9 @@ void DrawAll () {
 
    DrawStacked("HTSel_nJets" ,"N(AK5 jets)" ,0 ,0 ,0 ,1 ,1 ,0 ,15); 
    DrawStacked("HTSel_nBJets" ,"N(b-tagged AK5 jets)" ,0 ,0 ,0 ,1 ,1 ,0 ,5); 
-   DrawStacked("HTSel_nHJets" ,"N(Higgs-tagged CA8 jets)" ,0 ,1 ,0 ,1 ,1 ,0 ,5); 
-   DrawStacked("HTSel_HT" ,"HT (GeV)" ,0 ,0 ,0 ,4 ,1 ,750 ,2750); 
+   DrawStacked("HTSel_nHJets" ,"N(Higgs-tagged CA8 jets)" ,0 ,0 ,0 ,1 ,1 ,0 ,5); 
+   DrawStacked("HTSel_HT" ,"HT (GeV)" ,0 ,0 ,0 ,4 ,1 ,750 ,2050); 
+   DrawStacked("HTSel_HT" ,"HT (GeV)" ,1 ,0 ,0 ,4 ,1 ,750 ,2050); 
 
    return ; 
 
@@ -196,23 +198,6 @@ void DrawStacked(TString name,
     hist_ratio->Divide(hist_bkg);
   }
 
-  //DMTCanvas *c1 = new TCanvas("c1", "c1",441,159,782,552);
-  //DMc1->Range(0,0,1,1);
-  //DMc1->SetFillColor(10);
-  //DMc1->SetBorderSize(2);
-  //DMc1->SetFrameFillColor(0);
-
-  //DMTPad* pad0 = new TPad("pad0", "pad0",0,0.25,1.0,1.00);
-  //DMpad0 ->Draw();
-  //DMpad0 ->cd();
-  //DMpad0->SetFillColor(0);
-  //DMpad0->SetBorderSize(2);
-  //DMpad0->SetBorderMode(0);
-  //DMpad0->SetFrameBorderMode(0);
-  //DMpad0->SetTopMargin(0.065);
-
-  //DMpad0->SetLogy(log);
-
   TCanvas* c1 = new TCanvas();
   c1->cd();
   c1->SetBorderMode(0);
@@ -250,8 +235,6 @@ void DrawStacked(TString name,
     ax->SetTitleSize( 0.0 );
   }
   ay->SetTitle("Entries");
-  //DMay->SetLabelSize( 0.05 );
-  //DMay->SetTitleSize( 0.06 );
   hist_bkg->SetTitleOffset(0.83,"Y");
 
   if (setXRange) {
@@ -274,13 +257,25 @@ void DrawStacked(TString name,
 
   pad0->RedrawAxis();
 
+  TPad *overlay ;
+  if (name.Contains("nPVtx")) {
+    overlay = new TPad("overlay","",0,0,1,1);
+    overlay->SetFillStyle(4000);
+    overlay->SetFillColor(0);
+    overlay->SetFrameFillStyle(4000);
+    overlay->Draw();
+    overlay->cd();
+    overlay->SetLogy();
+    overlay->RedrawAxis() ;
+  }
+
   int move_legend=0;
   TLegend *leg ;
   if (move_legend==1) {
     leg =  new TLegend(0.1,0.57,0.40,.92,NULL,"brNDC");
   }
   else {
-    leg = new TLegend(0.57,0.57,0.895,0.92,NULL,"brNDC");
+    leg = new TLegend(0.57,0.62,0.895,0.93,NULL,"brNDC");
   }
   leg->SetBorderSize(1);
   leg->SetTextFont(132);
@@ -305,42 +300,11 @@ void DrawStacked(TString name,
 
   leg->Draw();
 
-  //DMTLatex *   tex0 = new TLatex(0.42,1.00,"CMS Preliminary, 19.7/fb at #sqrt{s} = 8 TeV");
-  //DMtex0->SetNDC();
-  //DMtex0->SetTextAlign(12);
-  //DMtex0->SetTextFont(132);
-  //DMtex0->SetTextSize(0.055);
-  //DMtex0->SetLineWidth(2);
-  //DMtex0->Draw();
-
-  //DMif (setSampleName) {
-  //DM  TString sample = "";
-  //DM  TLatex *tex1 = new TLatex(0.14,0.88,sample);
-  //DM  tex1->SetNDC();
-  //DM  tex1->SetTextAlign(13);
-  //DM  tex1->SetTextFont(42);
-  //DM  tex1->SetTextFont(62);
-  //DM  tex1->SetTextSize(0.055);
-  //DM  tex1->SetLineWidth(2);
-  //DM  tex1->Draw();
-  //DM}
-
-
   pad0->Modified();
 
   c1->cd();
 
   if (doData) {
-    //DMTPad* pad1 = new TPad("pad1", "pad1",0,0.,1.0,0.32);
-    //DMpad1->Draw();
-    //DMpad1->cd();
-    //DMpad1->SetFillColor(0);
-    //DMpad1->SetBorderMode(0);
-    //DMpad1->SetBorderSize(2);
-    //DMpad1->SetGridy();
-    //DMpad1->SetBottomMargin(0.31);
-    //DMpad1->SetFrameBorderMode(0);
-
     TPad* pad1 = new TPad("pad1", "",0,0,1,.25) ; 
     pad1->Draw() ;  
     pad1->cd() ;  
@@ -363,16 +327,6 @@ void DrawStacked(TString name,
     hist_mcUnc->GetXaxis()->SetTitle(histotitle);
     hist_mcUnc->GetYaxis()->SetNdivisions( 505 );
 
-    //DMdouble labelsizex=0.12;
-    //DMdouble labelsizey=0.12;
-    //DMdouble titlesizex=0.15;
-    //DMdouble titlesizey=0.14;
-
-    //DMhist_mcUnc->GetXaxis()->SetLabelSize( labelsizex );
-    //DMhist_mcUnc->GetXaxis()->SetTitleSize( titlesizex );
-    //DMhist_mcUnc->GetYaxis()->SetLabelSize( labelsizey );
-    //DMhist_mcUnc->GetYaxis()->SetTitleSize( titlesizey );
-
     TAxis* ax1 = hist_mcUnc->GetXaxis();
     TAxis* ay1 = hist_mcUnc->GetYaxis();
 
@@ -388,7 +342,6 @@ void DrawStacked(TString name,
     hist_mcUnc->SetMinimum(0.0);
     hist_mcUnc->SetMaximum(2.6);
     hist_mcUnc->Draw("E2");
-    //hist_ratio->Draw("SAMEE1X0");
     hist_ratio->Draw("SAMEE1");
 
     pad1->Modified();
@@ -449,5 +402,4 @@ void DrawStacked(TString name,
   return ; 
 
 }
-
 
