@@ -73,7 +73,7 @@ void DrawAll () {
    DrawStacked("TriggerSel_nPVtx_NoPUWt" ,"N(PV), No PU weight" ,0 ,1 ,0 ,1 ,1 ,0 ,50); 
    DrawStacked("TriggerSel_nPVtx_PUWt" ,"N(PV)" ,0 ,1 ,0 ,1 ,1 ,0 ,50); 
    DrawStacked("TriggerSel_nFatJets" ,"N(CA8 jets)" ,1 ,1 ,0 ,1 ,1 ,0 ,5); 
-   DrawStacked("TriggerSel_nJets" ,"N(AK5 jets)" ,1 ,1 ,0 ,1 ,1 ,0 ,5); 
+   DrawStacked("TriggerSel_nJets" ,"N(AK5 jets)" ,1 ,1 ,0 ,1 ,1 ,0 ,10); 
    DrawStacked("TriggerSel_FatJets_Pt" ,"p_{T}(CA8 jets) (GeV)" ,1 ,1 ,0 ,4 ,1 ,0 ,1000); 
    DrawStacked("TriggerSel_SubJet1_Pt" ,"p_{T}(leading subjet) (GeV)" ,1 ,1 ,0 ,1 ,1 ,0 ,1000); 
    DrawStacked("TriggerSel_SubJet2_Pt" ,"p_{T}(subleading subjet) (GeV)" ,1 ,1 ,0 ,1 ,1 ,0 ,1000); 
@@ -87,19 +87,19 @@ void DrawAll () {
    DrawStacked("TriggerSel_SubJet1_Mass" ,"M(leading subjet) (GeV)" ,1 ,1 ,0 ,1 ,1 ,0 ,600); 
    DrawStacked("TriggerSel_SubJet2_Mass" ,"M(subleading subjet) (GeV)" ,1 ,1 ,0 ,1 ,1 ,0 ,300); 
 
-   DrawStacked("FatJetSel_nJets" ,"N(AK5 jets)" ,1 ,1 ,0 ,1 ,1 ,0 ,15); 
+   DrawStacked("FatJetSel_nJets" ,"N(AK5 jets)" ,1 ,1 ,0 ,1 ,1 ,0 ,10); 
    DrawStacked("FatJetSel_nBJets" ,"N(b-tagged AK5 jets)" ,1 ,1 ,0 ,1 ,1 ,0 ,5); 
    DrawStacked("FatJetSel_BJet_Pt" ,"p_{T}(b-tagged AK5 jets) (GeV)" ,1 ,1 ,0 ,1 ,1 ,0 ,1000); 
    DrawStacked("FatJetSel_BJet_Eta" ,"#eta(b-tagged AK5 jets) (GeV)" ,1 ,1 ,0 ,1 ,1 , -3, 3); 
 
-   DrawStacked("HiggsJetSel_nJets" ,"N(AK5 jets)" ,0 ,1 ,0 ,1 ,1 ,0 ,15); 
+   DrawStacked("HiggsJetSel_nJets" ,"N(AK5 jets)" ,0 ,1 ,0 ,1 ,1 ,0 ,10); 
    DrawStacked("HiggsJetSel_nBJets" ,"N(b-tagged AK5 jets)" ,0 ,1 ,0 ,1 ,1 ,0 ,5); 
    DrawStacked("HiggsJetSel_BJet_Pt" ,"p_{T}(b-tagged AK5 jets) (GeV)" ,1 ,1 ,0 ,1 ,1 ,0 ,1000); 
    DrawStacked("HiggsJetSel_BJet_Eta" ,"#eta(b-tagged AK5 jets) (GeV)" ,1 ,1 ,0 ,1 ,1 , -3, 3); 
 
-   DrawStacked("BJetsSel_nJets" ,"N(AK5 jets)" ,0 ,1 ,0 ,1 ,1 ,0 ,15); 
+   DrawStacked("BJetsSel_nJets" ,"N(AK5 jets)" ,0 ,1 ,0 ,1 ,1 ,0 ,10); 
 
-   DrawStacked("HTSel_nJets" ,"N(AK5 jets)" ,0 ,0 ,0 ,1 ,1 ,0 ,15); 
+   DrawStacked("HTSel_nJets" ,"N(AK5 jets)" ,0 ,0 ,0 ,1 ,1 ,0 ,10); 
    DrawStacked("HTSel_nBJets" ,"N(b-tagged AK5 jets)" ,0 ,0 ,0 ,1 ,1 ,0 ,5); 
    DrawStacked("HTSel_nHJets" ,"N(Higgs-tagged CA8 jets)" ,0 ,0 ,0 ,1 ,1 ,0 ,5); 
    DrawStacked("HTSel_HT" ,"HT (GeV)" ,0 ,0 ,0 ,4 ,1 ,750 ,2050); 
@@ -136,6 +136,8 @@ void DrawStacked(TString name,
   hist_sig2             = (TH1D*)myFile->Get("BprimeBprimeToBHBHinc_M-1000__"+name);
   if (doData) hist_data = (TH1D*)myFile->Get("DATA__"+name);
 
+  hist_sig2->Scale(10.) ; 
+
   fix(hist_qcd   )           ; 
   fix(hist_ttjets)           ; 
   fix(hist_sig0  )           ; 
@@ -160,15 +162,15 @@ void DrawStacked(TString name,
     hist_bkg->Scale(scalef) ; 
   }
 
-  beautify(hist_qcd   ,42 ,1001 ,1)        ; 
-  beautify(hist_ttjets,38 ,1001 ,1)        ; 
-  beautify(hist_bkg   ,0  ,0    ,0)        ; 
-  beautify(hist_sig0  ,43 ,1001 ,1)        ; 
-  beautify(hist_sig1  ,46 ,1001 ,1)        ; 
-  beautify(hist_sig2  ,49 ,1001 ,1)        ; 
+  beautify(hist_qcd   ,42 ,1001 ,1 ,2) ; 
+  beautify(hist_ttjets,38 ,1001 ,1 ,2) ; 
+  beautify(hist_bkg   ,0  ,0    ,0 ,2) ; 
+  beautify(hist_sig0  ,4  ,0    ,2 ,2) ; 
+  beautify(hist_sig1  ,6  ,0    ,4 ,4) ; 
+  beautify(hist_sig2  ,2  ,0    ,1 ,3) ; 
   if ( name.Contains("nPVtx") || name.Contains("h_cutflow") ) {
     hist_bkg->SetFillStyle(1001);
-    hist_bkg->SetFillColor(46);
+    hist_bkg->SetFillColor(25);
   }
   else {
     hist_bkg->SetFillStyle(3254);
@@ -212,16 +214,16 @@ void DrawStacked(TString name,
   pad0->SetLogy(log) ; 
 
   if (!log) {
-    hist_bkg->SetMaximum( doData ? hist_data->GetMaximum()*2.1 : hist_bkg->GetMaximum()*2.1) ;
+    hist_bkg->SetMaximum( doData ? hist_data->GetMaximum()*2.5 : hist_bkg->GetMaximum()*2.5) ;
     hist_bkg->SetMinimum(0.) ; 
   }
   else {
     if (name.Contains("tau") || name.Contains("nFatJets") 
         || name.Contains("nJets") || name.Contains("TriggerSel_FatJets_Pt")
         || name.Contains("TriggerSel_SubJet1_Pt")) 
-      hist_bkg->SetMaximum( doData ? hist_data->GetMaximum()*5000000 : hist_bkg->GetMaximum()*5000000) ;
+      hist_bkg->SetMaximum( doData ? hist_data->GetMaximum()*50000000 : hist_bkg->GetMaximum()*50000000) ;
     else 
-      hist_bkg->SetMaximum( doData ? hist_data->GetMaximum()*2000 : hist_bkg->GetMaximum()*2000) ;
+      hist_bkg->SetMaximum( doData ? hist_data->GetMaximum()*5000 : hist_bkg->GetMaximum()*5000) ;
     hist_bkg->SetMinimum(0.1) ; 
   }
 
@@ -247,12 +249,22 @@ void DrawStacked(TString name,
   if ( name.Contains("nPVtx") || name.Contains("h_cutflow") ) {
     hist_bkg->Draw("HIST");
     if (doData) hist_data->Draw("SAMEE");
+    if ( name.Contains("h_cutflow") ) {
+      hist_sig0->Draw("HISTSAME") ; 
+      hist_sig1->Draw("HISTSAME") ; 
+      hist_sig2->Draw("HISTSAME") ; 
+    }
   }
   else {
     hist_bkg->Draw("hist");
     stack->Draw("histSAME");
     if (doData) hist_data->Draw("SAMEE1");
     hist_bkg->Draw("samee2");
+    if (name.Contains("HTSel")) { 
+      hist_sig0->Draw("HISTSAME") ; 
+      hist_sig1->Draw("HISTSAME") ; 
+      hist_sig2->Draw("HISTSAME") ; 
+    } 
   }
 
   pad0->RedrawAxis();
@@ -272,10 +284,17 @@ void DrawStacked(TString name,
   int move_legend=0;
   TLegend *leg ;
   if (move_legend==1) {
-    leg =  new TLegend(0.1,0.57,0.40,.92,NULL,"brNDC");
+    leg =  new TLegend(0.1,0.53,0.40,.92,NULL,"brNDC");
   }
   else {
-    leg = new TLegend(0.57,0.62,0.895,0.93,NULL,"brNDC");
+    if (name.Contains("nJets")) {
+      leg = new TLegend(0.20,0.72,0.895,0.93,NULL,"brNDC");
+      leg->SetNColumns(2) ; 
+    }
+    else if (name.Contains("HTSel")) 
+      leg = new TLegend(0.56,0.47,0.895,0.93,NULL,"brNDC");
+    else 
+      leg = new TLegend(0.56,0.53,0.895,0.93,NULL,"brNDC");
   }
   leg->SetBorderSize(1);
   leg->SetTextFont(132);
@@ -287,14 +306,18 @@ void DrawStacked(TString name,
   leg->SetBorderSize(0);
   leg->SetTextSize(0.06);
 
-  if ( name.Contains("nPVtx") || name.Contains("h_cutflow") ) {
-    leg->AddEntry(hist_bkg             , "All backgrounds", "f") ; 
+  if ( name.Contains("nPVtx") || name.Contains("h_cutflow") ){
+    leg->AddEntry(hist_bkg      , "All backgrounds"        , "f") ; 
   }
-  else {
-    std::cout << " name contains " << name << std::endl ; 
-    leg->AddEntry(hist_ttjets          , "t#bar{t}+jets"          ,"f");
-    leg->AddEntry(hist_qcd             , "Non-t#bar{t} multijets" ,"f");
-    leg->AddEntry(hist_bkg             , "Bkg. error (stat.)"     ,"f");
+  if ( name.Contains("h_cutflow") || name.Contains("HTSel") ) {
+    leg -> AddEntry(hist_sig0 ,"b'(500 GeV)"             ,"l") ; 
+    leg -> AddEntry(hist_sig1 ,"b'(800 GeV)"             ,"l") ; 
+    leg -> AddEntry(hist_sig2 ,"b'(1000 GeV)#times 10"   ,"l") ; 
+  }
+  if ( !name.Contains("nPVtx") && !name.Contains("h_cutflow") ) {
+    leg->AddEntry(hist_ttjets   , "t#bar{t}+jets"          ,"f");
+    leg->AddEntry(hist_qcd      , "Non-t#bar{t} multijets" ,"f");
+    leg->AddEntry(hist_bkg      , "Bkg. error (stat.)"     ,"f");
   }
   if (doData) leg->AddEntry(hist_data, datacaption              ,"pl");
 
@@ -350,34 +373,44 @@ void DrawStacked(TString name,
   c1->cd();
 
   char temp[100];
-  TPaveText *plotlabel0 = new TPaveText(0.17,0.925,0.37,.95,"NDC");
+  TPaveText *plotlabel0 = new TPaveText(0.56,0.925,0.90,.95,"NDC");
   plotlabel0->SetTextColor(kBlack);
   plotlabel0->SetFillColor(kWhite);
   plotlabel0->SetBorderSize(0);
   plotlabel0->SetTextAlign(12);
   plotlabel0->SetTextSize(0.045);
   sprintf(temp, "%.1f", Lint/1000);
-  plotlabel0->AddText( (string("CMS Preliminary 2012, ")  
-        + string("L = ") 
-        + temp 
-        + string("/fb")).c_str()); 
-  TPaveText *plotlabel1 = new TPaveText(0.77,0.925,0.90,.95,"NDC");
-  plotlabel1->SetTextColor(kBlack);
-  plotlabel1->SetFillColor(kWhite);
-  plotlabel1->SetBorderSize(0);
-  plotlabel1->SetTextAlign(12);
-  plotlabel1->SetTextSize(0.045);
-  plotlabel1->AddText("#sqrt{s} = 8 TeV") ; 
-  TPaveText *plotlabel2 = new TPaveText(0.17,0.925,0.37,0.95,"NDC");
-  plotlabel2->SetTextColor(kBlack);
-  plotlabel2->SetFillColor(kWhite);
-  plotlabel2->SetBorderSize(0);
-  plotlabel2->SetTextAlign(12);
-  plotlabel2->SetTextSize(0.045);
-  sprintf(temp, "%.1f", Lint);
-  plotlabel2->AddText((string("#int#font[12]{L}dt = ") + temp + string(" fb^{ -1}")).c_str()); 
+  plotlabel0->AddText( (string("L = ") + temp + string("/fb, ") + string("#sqrt{s} = 8 TeV")).c_str() ) ; 
   plotlabel0->Draw() ; 
-  plotlabel1->Draw() ; 
+
+  //DM TPaveText *plotlabel0 = new TPaveText(0.22,0.925,0.37,.95,"NDC");
+  //DM plotlabel0->SetTextColor(kBlack);
+  //DM plotlabel0->SetFillColor(kWhite);
+  //DM plotlabel0->SetBorderSize(0);
+  //DM plotlabel0->SetTextAlign(12);
+  //DM plotlabel0->SetTextSize(0.045);
+  //DM sprintf(temp, "%.1f", Lint/1000);
+  //DM plotlabel0->AddText( (string("CMS Preliminary 2012, ")  
+  //DM       + string("L = ") 
+  //DM       + temp 
+  //DM       + string("/fb")).c_str()); 
+  //DM TPaveText *plotlabel1 = new TPaveText(0.77,0.925,0.90,.95,"NDC");
+  //DM plotlabel1->SetTextColor(kBlack);
+  //DM plotlabel1->SetFillColor(kWhite);
+  //DM plotlabel1->SetBorderSize(0);
+  //DM plotlabel1->SetTextAlign(12);
+  //DM plotlabel1->SetTextSize(0.045);
+  //DM plotlabel1->AddText("#sqrt{s} = 8 TeV") ; 
+  //DM TPaveText *plotlabel2 = new TPaveText(0.17,0.925,0.37,0.95,"NDC");
+  //DM plotlabel2->SetTextColor(kBlack);
+  //DM plotlabel2->SetFillColor(kWhite);
+  //DM plotlabel2->SetBorderSize(0);
+  //DM plotlabel2->SetTextAlign(12);
+  //DM plotlabel2->SetTextSize(0.045);
+  //DM sprintf(temp, "%.1f", Lint);
+  //DM plotlabel2->AddText((string("#int#font[12]{L}dt = ") + temp + string(" fb^{ -1}")).c_str()); 
+  //DM plotlabel0->Draw() ; 
+  //DM plotlabel1->Draw() ; 
 
   c1->Modified();
   c1->cd();

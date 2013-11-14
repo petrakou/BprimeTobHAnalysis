@@ -69,11 +69,12 @@ void beautifyFillStyle(TH1* in, int color=kBlack, int style=0) {
   in->SetFillColor(color);
 }
 
-void beautify(TH1* in, int color=kBlack, int fillstyle=0, int linestyle=1) {
+void beautify(TH1* in, int color=kBlack, int fillstyle=0, int linestyle=1, int linewidth=2) {
   in->SetFillStyle(fillstyle);
   in->SetFillColor(color);
   in->SetLineColor(color);
   in->SetLineStyle(linestyle);
+  in->SetLineWidth(linewidth);
 }
 
 void beautifyAxis(TAxis* ax) {
