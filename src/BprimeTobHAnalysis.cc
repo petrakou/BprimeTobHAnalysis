@@ -376,6 +376,22 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
     FillHisto(TString("TriggerSel")+TString("_nFatJets"), FatJetInfo.Size, evtwt_*puweight_) ; 
     h_cutflow -> Fill("TriggerSel", 1) ; 
 
+    //// Preselection 
+    bool CA8pre(false);
+    for (int ifj=0; ifj < FatJetInfo.Size; ++ifj) {
+      if ( FatJetInfo.Pt[ifj] > 100. ) {
+        CA8pre = true;
+        break;
+      }
+    }
+    if( !CA8pre ) continue;
+
+    int AK5preCount(0);
+    for (int ij=0; ij < JetInfo.Size; ++ij) {
+      if ( JetInfo.Pt[ij] > 30. ) AK5preCount++;
+    }
+    if( AK5preCount < 2 ) continue;
+
     evtwt_ *= puweight_ ; 
 
     TLorentzVector higgs_p4 ; 
