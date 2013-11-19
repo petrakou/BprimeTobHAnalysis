@@ -34,7 +34,7 @@ if __name__  == "__main__":
   hmc.Add(hqcd)
 
   for hist in hsig:
-    fname = 'datacard_BpBpbHbH_M' + hist.GetName().split('__')[0] + '.txt'
+    fname = 'datacard_' + hist.GetName().split('__')[0] + '.txt'
     outf = open(fname, 'w')
     outf.write("-----------------------------------------------------------------------------------------------------------------------------------------\n")
     outf.write("imax 1\n")    

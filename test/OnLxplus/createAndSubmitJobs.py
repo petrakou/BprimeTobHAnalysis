@@ -71,7 +71,7 @@ cd MAIN_WORKDIR
 eval `scram runtime -sh`
 
 cp -v MAIN_WORKDIR/CMSSW_cfg.py $BATCHDIR/CMSSW_cfg.py
-cp -v MAIN_WORKDIR/PUDist*.root $BATCHDIR/
+cp -v MAIN_WORKDIR/pileup*.root $BATCHDIR/
 cp -v DATASET_WORKDIR/input/inputFiles_JOB_NUMBER_cfi.py $BATCHDIR/inputFiles_cfi.py
 
 cd $BATCHDIR
@@ -80,6 +80,7 @@ cmsRun CMSSW_cfg.py CFG_PARAMETERS
 exitcode=$?
 
 cp -v OUTPUT_FILENAME.root DATASET_WORKDIR/output/OUTPUT_FILENAME_JOB_NUMBER.root
+cp -v Evt_NoJets.txt DATASET_WORKDIR/output/Evt_NoJets_JOB_NUMBER.txt
 
 exit $exitcode
 
@@ -138,7 +139,7 @@ def main():
   for filename in os.listdir(cfg_dirname):
     if not os.path.isfile(os.path.join(cfg_dirname,filename)):
       continue
-    if re.search("^PUDist.*\.root$", filename):
+    if re.search("^pileup.*\.root$", filename):
       shutil.copy(os.path.join(cfg_dirname,filename),main_workdir)
 
   # open and read the dataset_list file
