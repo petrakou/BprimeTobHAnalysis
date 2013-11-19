@@ -314,6 +314,11 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
   pat::strbitset retak5 = jetIDTight.getBitTemplate() ;
   pat::strbitset retca8 = fatjetIDLoose.getBitTemplate() ;
 
+  ofstream fout("Evt_NoJets.txt") ; 
+  if ( isData_ ) {
+    fout << "EvtInfo.RunNo " << " EvtInfo.LumiNo " << " EvtInfo.EvtNo " << std::endl ;
+  }
+
   edm::LogInfo("StartingAnalysisLoop") << "Starting analysis loop\n";
 
   for(int entry=0; entry<maxEvents_; entry++) {
@@ -369,6 +374,10 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
     }
 
     if ( !passHLT ) continue ; 
+
+    if ( isData_ ) {
+      if ( JetInfo.Size == 0 ) fout << EvtInfo.RunNo << " " << EvtInfo.LumiNo << " " << EvtInfo.EvtNo << std::endl ; 
+    }
 
     FillHisto(TString("TriggerSel")+TString("_nPVtx_NoPUWt"), nGoodVtxs, evtwt_) ; 
     FillHisto(TString("TriggerSel")+TString("_nPVtx_PUWt"), nGoodVtxs, evtwt_*puweight_) ; 
@@ -599,6 +608,8 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
     } //// If at least one Higgs jet 
 
   } //// entry loop 
+
+  fout.close() ; 
 
 }
 
