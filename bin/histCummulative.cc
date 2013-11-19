@@ -1,4 +1,4 @@
-#include "BprimeTobHAnalysisv1/BprimeTobHAnalysis/interface/histCummulative.h"
+#include "../../BprimeTobHAnalysis/interface/histCummulative.h"
 
 int main (int argc, char *argv[]) {
 
