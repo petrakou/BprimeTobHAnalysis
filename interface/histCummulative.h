@@ -37,7 +37,7 @@ TGraphAsymmErrors* getCummulative (const Type histp, const char* option) {
   histp->SetBinError(1, sqrt(Err1*Err1 + Err2*Err2));
 
   Type hcummulp = (Type)histp->Clone("hcummul") ; 
-//  hcummulp->Sumw2() ; 
+  //hcummulp->Sumw2() ; 
   hcummulp->Reset(0) ; 
 
   TString mode(option) ; 
@@ -64,7 +64,7 @@ TGraphAsymmErrors* getCummulative (const Type histp, const char* option) {
   }
 
   Type htot = (Type)histp->Clone("htot") ; 
-//  htot->Sumw2() ; 
+  //htot->Sumw2() ; 
   for (int ibin = 1; ibin <= nbins; ++ibin) {
     if (mode.Contains("Up")) {
       htot->SetBinContent(ibin, hcummulp->GetBinContent(nbins)) ; 

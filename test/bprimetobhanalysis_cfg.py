@@ -18,6 +18,26 @@ options.register('reportEvery', 1000,
     VarParsing.varType.int,
     "Report every N events (default is N=1000)"
     )
+options.register('doGenAna', False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "Make Hbb candidates" 
+    )
+options.register('isBprime', False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "If bprime MC sample" 
+    )
+options.register('isQCD', False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "If QCD MC sample" 
+    )
+options.register('isTTJets', False,
+    VarParsing.multiplicity.singleton,
+    VarParsing.varType.bool,
+    "If TTJets MC sample" 
+    )
 options.register('jetPtMin', 50.,
     VarParsing.multiplicity.singleton,
     VarParsing.varType.float,
@@ -136,6 +156,10 @@ process.BprimebH = cms.EDAnalyzer('BprimeTobHAnalysis',
     File_PUDistData     = cms.string('pileup_Data_Summer12_53X_S10.root'),
     Hist_PUDistMC       = cms.string('pileup_mc'),
     Hist_PUDistData     = cms.string('pileup_data'),
+    DoGenAna            = cms.bool(options.doGenAna),
+    IsBprime            = cms.bool(options.isBprime),
+    IsQCD               = cms.bool(options.isQCD),
+    IsTTJets            = cms.bool(options.isTTJets),
     JetPtMin            = cms.double(options.jetPtMin),
     JetPtMax            = cms.double(options.jetPtMax),
     JetAbsEtaMax        = cms.double(2.4),

@@ -36,6 +36,7 @@ Implementation:
 #include <TFile.h>
 #include <TMath.h>
 #include <TH1D.h>
+#include <TH2D.h>
 #include <TH1I.h>
 #include <TEfficiency.h>
 
@@ -49,15 +50,16 @@ Implementation:
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
+#include "PhysicsTools/Utilities/interface/LumiReWeighting.h"
+#include "PhysicsTools/Utilities/interface/LumiReweightingStandAlone.h" 
+
 #include "../../BprimeTobH/interface/format.h"
 #include "../../BprimeTobH/interface/TriggerBooking.h"
 #include "../../BprimeTobH/interface/Njettiness.hh"
 #include "../../BprimeTobH/interface/Nsubjettiness.hh"
-
-#include "PhysicsTools/Utilities/interface/LumiReWeighting.h"
-#include "PhysicsTools/Utilities/interface/LumiReweightingStandAlone.h" 
-
 #include "../../BprimeTobHAnalysis/interface/JetID.h"
+#include "../../BprimeTobHAnalysis/interface/HbbCandidate.h" 
+
 
 //
 // class declaration
@@ -79,6 +81,7 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     void AddHisto(const TString&, const TString&, const TString&, const int&, const double&, const double&) ; 
     template <class Type>
       void FillHisto(const TString& name, const Type value, const double weight);
+    void doGenAna (const GenInfoBranches& GenInfo) ; 
 
     edm::LumiReWeighting LumiWeights_; 
 
@@ -96,6 +99,11 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     const std::string               file_PUDistData_ ;
     const std::string               hist_PUDistMC_ ;
     const std::string               hist_PUDistData_ ;
+
+    const bool doGenAna_ ; 
+    const bool isBprime_ ; 
+    const bool isQCD_ ; 
+    const bool isTTJets_ ; 
 
     const double jetPtMin_ ; 
     const double jetPtMax_ ; 
@@ -132,10 +140,22 @@ class BprimeTobHAnalysis : public edm::EDAnalyzer {
     bool isData_ ; 
     double evtwt_ ; 
     double puweight_ ; 
+    std::vector<HbbCandidate> HbbCands_ ; 
 
     TH1D* h_cutflow ; 
-
     std::map<TString, TH1D*> hmap_1d ;  
+    TH1D* hgen_pTSubjet0 ; 
+    TH1D* hgen_pTSubjet1 ; 
+    TH2D* h2gen_DRbb_Hbb ; 
+    TH2D* h2gen_DRsubjets_noNsubCut ; 
+    TH2D* h2gen_DRsubjets_withNsubCut ; 
+    TH2D* h2gen_DRsubjets_pTSubjet0_noNsubCut ; 
+    TH2D* h2gen_DRsubjets_pTSubjet1_noNsubCut ; 
+    TH2D* h2gen_DRsubjets_pTSubjet0_withNsubCut ;
+    TH2D* h2gen_DRsubjets_pTSubjet1_withNsubCut ; 
+    TH2D* h2gen_pTsubjet0_pTsubjet1_noNsubCut ; 
+    TH2D* h2gen_pTsubjet0_pTsubjet1_withNsubCut ; 
+    
 
 };
 
@@ -153,6 +173,10 @@ BprimeTobHAnalysis::BprimeTobHAnalysis(const edm::ParameterSet& iConfig) :
   file_PUDistData_(iConfig.getParameter<std::string>("File_PUDistData")),
   hist_PUDistMC_(iConfig.getParameter<std::string>("Hist_PUDistMC")),
   hist_PUDistData_(iConfig.getParameter<std::string>("Hist_PUDistData")),
+  doGenAna_(iConfig.getParameter<bool>("DoGenAna")), 
+  isBprime_(iConfig.getParameter<bool>("IsBprime")), 
+  isQCD_(iConfig.getParameter<bool>("IsQCD")), 
+  isTTJets_(iConfig.getParameter<bool>("IsTTJets")), 
   jetPtMin_(iConfig.getParameter<double>("JetPtMin")),
   jetPtMax_(iConfig.getParameter<double>("JetPtMax")),
   jetAbsEtaMax_(iConfig.getParameter<double>("JetAbsEtaMax")),
@@ -212,7 +236,28 @@ void BprimeTobHAnalysis::beginJob() {
   //eSelector = new eventSelector(SelectionParameters,EvtInfo,LepInfo,JetInfo,VtxInfo);
   //cutLevels = eSelector->getCutLevels();
 
-  h_cutflow                    = fs->make<TH1D>("h_cutflow"                   ,"Cut flow"                   ,20  ,0.  ,20.  ); 
+  hgen_pTSubjet0              = fs->make<TH1D>("hgen_pTSubjet0" ,"p_{T} (leading subjet) [GeV]" ,1000 ,0. ,1000.) ; 
+  hgen_pTSubjet1              = fs->make<TH1D>("hgen_pTSubjet1" ,"p_{T} (2nd subjet) [GeV]"     ,1000 ,0. ,1000.) ; 
+  h2gen_DRbb_Hbb              = fs->make<TH2D>("h2gen_DRbb_Hbb" ,"#DeltaR(bb) vs. p_{T} (H(120)) [GeV]" 
+      ,1000 ,0. ,1000. ,400 ,0. ,4.);
+  h2gen_DRsubjets_noNsubCut   = fs->make<TH2D>("h2gen_DRsubjets_noNsubCut" ,"#DeltaR(subjet1, subjet2) vs. p_{T} (H(120)) [GeV]" 
+      ,1000 ,0. ,1000. ,400 ,0. ,4.); 
+  h2gen_DRsubjets_withNsubCut = fs->make<TH2D>("h2gen_DRsubjets_withNsubCut" ,"#DeltaR(subjet1, subjet2) vs. p_{T} (H(120)) [GeV]" 
+      ,1000 ,0. ,1000. ,400 ,0. ,4.); 
+  h2gen_DRsubjets_pTSubjet0_noNsubCut = fs->make<TH2D>("h2gen_DRsubjets_pTSubjet0_noNsubCut" 
+      ,"#DeltaR(subjet1, subjet2) vs. p_{T} (leading subjet) [GeV]" ,1000 ,0. ,1000. ,400 ,0. ,4.) ; 
+  h2gen_DRsubjets_pTSubjet1_noNsubCut = fs->make<TH2D>("h2gen_DRsubjets_pTSubjet1_noNsubCut" 
+      ,"#DeltaR(subjet1, subjet2) vs. p_{T} (2nd subjet) [GeV]"     ,1000 ,0. ,1000. ,400 ,0. ,4.) ; 
+  h2gen_DRsubjets_pTSubjet0_withNsubCut = fs->make<TH2D>("h2gen_DRsubjets_pTSubjet0_withNsubCut" 
+      ,"#DeltaR(subjet1, subjet2) vs. p_{T} (leading subjet) [GeV]" ,1000 ,0. ,1000. ,400 ,0. ,4.) ; 
+  h2gen_DRsubjets_pTSubjet1_withNsubCut = fs->make<TH2D>("h2gen_DRsubjets_pTSubjet1_withNsubCut" 
+      ,"#DeltaR(subjet1, subjet2) vs. p_{T} (2nd subjet) [GeV]"     ,1000 ,0. ,1000. ,400 ,0. ,4.) ; 
+  h2gen_pTsubjet0_pTsubjet1_noNsubCut = fs->make<TH2D>("h2gen_pTsubjet0_pTsubjet1_noNsubCut"
+                  ,"p_{T} (leading subjet) [GeV] vs. p_{T} (2nd subjet) [GeV]"     ,1000 ,0. ,1000. ,1000 ,0. ,1000.) ;
+  h2gen_pTsubjet0_pTsubjet1_withNsubCut = fs->make<TH2D>("h2gen_pTsubjet0_pTsubjet1_withNsubCut"
+                  ,"p_{T} (leading subjet) [GeV] vs. p_{T} (2nd subjet) [GeV]"     ,1000 ,0. ,1000. ,1000 ,0. ,1000.) ;
+
+  h_cutflow = fs->make<TH1D>("h_cutflow"                   ,"Cut flow"                   ,20  ,0.  ,20.  ); 
   h_cutflow -> Sumw2() ; 
   h_cutflow -> GetXaxis() -> SetBinLabel(1,"AllEvents") ; 
   h_cutflow -> GetXaxis() -> SetBinLabel(2,"TriggerSel") ; 
@@ -297,6 +342,38 @@ void BprimeTobHAnalysis::FillHisto(const TString& name, const Type value, const 
   hmap_1d[name]->Fill(double(value),weight);
   //if (!isData_) hmap_1d[name+"_mc"]->Fill(double(value),weight);
   //else hmap_1d[name+"_data"]->Fill(double(value),weight); 
+
+  return ; 
+
+}
+
+void BprimeTobHAnalysis::doGenAna (const GenInfoBranches& GenInfo) {
+
+  TLorentzVector higgs_p4 ; 
+  TLorentzVector higgsDa0_p4 ; 
+  TLorentzVector higgsDa1_p4 ; 
+  HbbCands_.clear() ; 
+  for (int igen = 0; igen < GenInfo.Size; ++igen) { 
+
+    if ( GenInfo.Status[igen] == 3 
+        && GenInfo.PdgID[igen] == 25 
+        && GenInfo.nDa[igen] >= 2 
+        && TMath::Abs(GenInfo.Da0PdgID[igen]) == 5 
+        && GenInfo.Da0PdgID[igen]/GenInfo.Da1PdgID[igen] == -1 
+       ) { 
+
+      higgs_p4.SetPtEtaPhiM(GenInfo.Pt[igen], GenInfo.Eta[igen], GenInfo.Phi[igen], GenInfo.Mass[igen]) ; 
+      higgsDa0_p4.SetPtEtaPhiM(GenInfo.Da0Pt[igen], GenInfo.Da0Eta[igen], GenInfo.Da0Phi[igen], GenInfo.Da0Mass[igen]) ; 
+      higgsDa1_p4.SetPtEtaPhiM(GenInfo.Da1Pt[igen], GenInfo.Da1Eta[igen], GenInfo.Da1Phi[igen], GenInfo.Da1Mass[igen]) ; 
+
+      h2gen_DRbb_Hbb -> Fill(higgs_p4.Pt(), higgsDa0_p4.DeltaR(higgsDa1_p4)) ;  
+
+      HbbCandidate hbbcand(higgs_p4, higgsDa0_p4, higgsDa1_p4) ; 
+      HbbCands_.push_back(hbbcand) ; 
+
+    } //// Get Higgs boson 
+
+  } //// Loop over all gen particles 
 
   return ; 
 
@@ -403,48 +480,9 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
 
     evtwt_ *= puweight_ ; 
 
-    TLorentzVector higgs_p4 ; 
-    for (int igen=0; igen < GenInfo.Size; ++igen) {
-
-      if ( GenInfo.Status[igen] == 3 
-          && TMath::Abs(GenInfo.PdgID[igen])==25 
-          //&& GenInfo.nDa[igen] == 2 
-          //&& TMath::Abs(GenInfo.PdgID[GenInfo.Da1[igen]])==5 
-          //&& TMath::Abs(GenInfo.PdgID[GenInfo.Da2[igen]])==5 
-         ) { 
-
-        higgs_p4.SetPtEtaPhiM(GenInfo.Pt[igen], GenInfo.Eta[igen], GenInfo.Phi[igen], GenInfo.Mass[igen]) ; 
-        TLorentzVector fatjet_p4;
-        bool matched ; 
-
-        //h_HiggsPt ->Fill(higgs_p4.Pt()) ; 
-
-        for (int ifatjet=0; ifatjet < FatJetInfo.Size; ++ifatjet) { 
-
-          if ( fabs(FatJetInfo.Eta[ifatjet]) > 1.5 ) continue ; 
-
-          fatjet_p4.SetPtEtaPhiM(FatJetInfo.Pt[ifatjet], FatJetInfo.Eta[ifatjet], 
-              FatJetInfo.Phi[ifatjet], FatJetInfo.Mass[ifatjet]);
-
-          if (higgs_p4.DeltaR(fatjet_p4) < 0.5) {
-            matched = true ; 
-            //h_HiggsPtMatchedJet ->Fill(higgs_p4.Pt()) ; 
-            break ; 
-          }
-          else 
-            matched = false ; 
-
-        } //// Loop over fat jets 
-
-        //teff_HiggsJetMatch -> Fill(matched, GenInfo.Pt[igen]) ; 
-
-      } //// Get Higgs boson 
-
-    } //// Loop over all gen particles 
+    if (!isData_ && doGenAna_) doGenAna(GenInfo) ; 
 
     for (int ifatjet=0; ifatjet < FatJetInfo.Size; ++ifatjet) {
-
-      //Fix h_FatJets_Pt->Fill(FatJetInfo.Pt[ifatjet]);
 
       //// Fat jet selection
       if ( FatJetInfo.Pt[ifatjet] < fatJetPtMin_ 
@@ -500,10 +538,67 @@ void BprimeTobHAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup
       FillHisto(TString("TriggerSel")+TString("_SubJet2_Mass") ,subjet2_p4.Mag() ,evtwt_)  ; 
       FillHisto(TString("TriggerSel")+TString("_SubJet2_CombinedSVBJetTags") ,SubJetInfo.CombinedSVBJetTags[iSubJet2] ,evtwt_)  ; 
 
+      bool isFatjet_HbbMatched(false) ; 
+      if (!isData_ && isBprime_) {
+        //// Match fat jet to Hbb candidate  
+        for (std::vector<HbbCandidate>::iterator it_hbb = HbbCands_.begin(); it_hbb != HbbCands_.end(); ++it_hbb) {
+          if (it_hbb->p4Higgs().DeltaR(fatjet_p4) < 0.8) { 
+            isFatjet_HbbMatched = true ; 
+            break ; 
+          } 
+        }
+      }
+
+      if (!isData_ && isBprime_) { 
+        if (isFatjet_HbbMatched) { 
+          h2gen_DRsubjets_noNsubCut -> Fill(fatjet_p4.Pt(),subjet_dyphi) ; 
+          subjet1_p4.Pt() > subjet2_p4.Pt() ? hgen_pTSubjet0->Fill(subjet1_p4.Pt()) : hgen_pTSubjet0->Fill(subjet2_p4.Pt())  ; 
+          subjet1_p4.Pt() > subjet2_p4.Pt() ? hgen_pTSubjet1->Fill(subjet2_p4.Pt()) : hgen_pTSubjet1->Fill(subjet1_p4.Pt())  ; 
+          subjet1_p4.Pt() > subjet2_p4.Pt() ? h2gen_DRsubjets_pTSubjet0_noNsubCut->Fill(subjet1_p4.Pt(),subjet_dyphi): 
+            h2gen_DRsubjets_pTSubjet0_noNsubCut->Fill(subjet2_p4.Pt(),subjet_dyphi); 
+          subjet1_p4.Pt() > subjet2_p4.Pt() ? h2gen_DRsubjets_pTSubjet1_noNsubCut->Fill(subjet2_p4.Pt(),subjet_dyphi): 
+            h2gen_DRsubjets_pTSubjet1_noNsubCut->Fill(subjet1_p4.Pt(),subjet_dyphi); 
+          subjet1_p4.Pt() > subjet2_p4.Pt() ? h2gen_pTsubjet0_pTsubjet1_noNsubCut ->Fill(subjet1_p4.Pt(), subjet2_p4.Pt()) : 
+            h2gen_pTsubjet0_pTsubjet1_noNsubCut ->Fill(subjet2_p4.Pt(), subjet1_p4.Pt()) ; 
+        }
+      }
+      else {
+        h2gen_DRsubjets_noNsubCut -> Fill(fatjet_p4.Pt(),subjet_dyphi) ; 
+        subjet1_p4.Pt() > subjet2_p4.Pt() ? hgen_pTSubjet0->Fill(subjet1_p4.Pt()) : hgen_pTSubjet0->Fill(subjet2_p4.Pt())  ; 
+        subjet1_p4.Pt() > subjet2_p4.Pt() ? hgen_pTSubjet1->Fill(subjet2_p4.Pt()) : hgen_pTSubjet1->Fill(subjet1_p4.Pt())  ; 
+        subjet1_p4.Pt() > subjet2_p4.Pt() ? h2gen_DRsubjets_pTSubjet0_noNsubCut->Fill(subjet1_p4.Pt(),subjet_dyphi): 
+          h2gen_DRsubjets_pTSubjet0_noNsubCut->Fill(subjet2_p4.Pt(),subjet_dyphi); 
+        subjet1_p4.Pt() > subjet2_p4.Pt() ? h2gen_DRsubjets_pTSubjet1_noNsubCut->Fill(subjet2_p4.Pt(),subjet_dyphi): 
+          h2gen_DRsubjets_pTSubjet1_noNsubCut->Fill(subjet1_p4.Pt(),subjet_dyphi); 
+        subjet1_p4.Pt() > subjet2_p4.Pt() ? h2gen_pTsubjet0_pTsubjet1_noNsubCut ->Fill(subjet1_p4.Pt(), subjet2_p4.Pt()) : 
+          h2gen_pTsubjet0_pTsubjet1_noNsubCut ->Fill(subjet2_p4.Pt(), subjet1_p4.Pt()) ; 
+      }
+
       //// Selecting fat jets 
       if (fatjet_p4.Mag() > fatJetMassMin_ 
           && fatjet_p4.Mag() < fatJetMassMax_ 
           && FatJetInfo.tau2[ifatjet]/FatJetInfo.tau1[ifatjet] < fatJetTau2ByTau1Max_) {
+
+        if (!isData_ && isBprime_) { 
+          if (isFatjet_HbbMatched) {
+            h2gen_DRsubjets_withNsubCut -> Fill(fatjet_p4.Pt(),subjet_dyphi) ; 
+            subjet1_p4.Pt() > subjet2_p4.Pt() ? h2gen_DRsubjets_pTSubjet0_withNsubCut->Fill(subjet1_p4.Pt(),subjet_dyphi): 
+              h2gen_DRsubjets_pTSubjet0_withNsubCut->Fill(subjet2_p4.Pt(),subjet_dyphi); 
+            subjet1_p4.Pt() > subjet2_p4.Pt() ? h2gen_DRsubjets_pTSubjet1_withNsubCut->Fill(subjet2_p4.Pt(),subjet_dyphi): 
+              h2gen_DRsubjets_pTSubjet1_withNsubCut->Fill(subjet1_p4.Pt(),subjet_dyphi); 
+            subjet1_p4.Pt() > subjet2_p4.Pt() ? h2gen_pTsubjet0_pTsubjet1_withNsubCut ->Fill(subjet1_p4.Pt(), subjet2_p4.Pt()) : 
+              h2gen_pTsubjet0_pTsubjet1_withNsubCut ->Fill(subjet2_p4.Pt(), subjet1_p4.Pt()) ; 
+          }
+        }
+        else {
+          h2gen_DRsubjets_withNsubCut -> Fill(fatjet_p4.Pt(),subjet_dyphi) ; 
+          subjet1_p4.Pt() > subjet2_p4.Pt() ? h2gen_DRsubjets_pTSubjet0_withNsubCut->Fill(subjet1_p4.Pt(),subjet_dyphi): 
+            h2gen_DRsubjets_pTSubjet0_withNsubCut->Fill(subjet2_p4.Pt(),subjet_dyphi); 
+          subjet1_p4.Pt() > subjet2_p4.Pt() ? h2gen_DRsubjets_pTSubjet1_withNsubCut->Fill(subjet2_p4.Pt(),subjet_dyphi): 
+            h2gen_DRsubjets_pTSubjet1_withNsubCut->Fill(subjet1_p4.Pt(),subjet_dyphi); 
+          subjet1_p4.Pt() > subjet2_p4.Pt() ? h2gen_pTsubjet0_pTsubjet1_withNsubCut ->Fill(subjet1_p4.Pt(), subjet2_p4.Pt()) : 
+            h2gen_pTsubjet0_pTsubjet1_withNsubCut ->Fill(subjet2_p4.Pt(), subjet1_p4.Pt()) ; 
+        }
 
         fatJets.push_back(fatjet_p4) ; 
 
